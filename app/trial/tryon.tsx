@@ -9,54 +9,63 @@ import {
   LoaderCircle,
 } from 'lucide-react';
 import { BrandName } from 'components/brand';
-import { InferenceParams, Products, Thumbnails } from 'lib/constants';
+import { InferenceParams, Thumbnails } from 'lib/constants';
 import Webcam from 'react-webcam';
 import LoadingScreen from '~/screens/Loading';
 import { useSearchParams } from 'react-router';
-import imageCompression from 'browser-image-compression';
+import type { Product } from '../../lib/types';
+import { compressImageIfNeeded, blobToBase64 } from '../../lib/utils';
+import { fetchProducts, sendImageToServer } from '../../lib/api';
 
 const VirtualTryOn = () => {
   const [pageLoading, setPageLoading] = useState(true);
   const [searchParams] = useSearchParams();
-
-  console.log(searchParams.get('productId'));
-  // useEffect(() => {
-  //   const fetchProducts = async () => {
-  //     const response = await fetch(
-  //       `https://api.example.com/products/${searchParams.get('businessId')}`
-  //     );
-  //     const data = await response.json(); // src of all images, id, type, link to the product
-  //     // setProducts(data);
-  //     console.log(data);
-  //   };
-  //   fetchProducts();
-  // }, [searchParams]);
-
-  const originalProduct = () => {
-    if (searchParams.get('productId')) {
-      const product = Products.find(
-        (product) =>
-          product.id === parseInt(searchParams.get('productId') as string)
-      );
-      return product;
-    }
-  };
-
-  const categories = Array.from(
-    new Set(Products.map((product) => product.category))
-  );
-
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'You' | 'model'>('model');
   const [showSimilar, setShowSimilar] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(
-    originalProduct()?.category || ''
-  );
-  const [activeProduct, setActiveProduct] = useState(originalProduct());
   const [mainImage, setMainImage] = useState('/model-base.webp');
-
   const [isCameraOn, setIsCameraOn] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [selectedThumbnailIndex, setSelectedThumbnailIndex] = useState<
+    number | null
+  >(null);
+
   const webcamRef = useRef<Webcam>(null);
+
+  useEffect(() => {
+    const initializeProducts = async () => {
+      try {
+        const fetchedProducts = await fetchProducts();
+        setProducts(fetchedProducts);
+        const productId = searchParams.get('productId');
+        if (productId) {
+          const chosenProduct = fetchedProducts.find(
+            (product) => product.product_id === productId
+          );
+          if (chosenProduct) {
+            setActiveProduct(chosenProduct);
+            setSelectedCategory(chosenProduct.product_category);
+          }
+        } else if (fetchedProducts.length > 0) {
+          setActiveProduct(fetchedProducts[0]);
+          setSelectedCategory(fetchedProducts[0].product_category);
+        }
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      } finally {
+        setPageLoading(false);
+      }
+    };
+
+    initializeProducts();
+  }, [searchParams]);
+
+  const categories = Array.from(
+    new Set(products.map((product) => product.product_category))
+  );
 
   const videoConstraints = {
     width: 1280,
@@ -64,46 +73,19 @@ const VirtualTryOn = () => {
     facingMode: 'user',
   };
 
-  const captureImage = useCallback(() => {
+  const captureImage = useCallback(async () => {
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot();
-
       if (imageSrc) {
-        compressIfNeeded(imageSrc).then((compressedImage) => {
-          setMainImage(compressedImage);
-          setViewMode('model');
-          setIsCameraOn(false);
-        });
-      }
-
-      async function compressIfNeeded(base64: string) {
-        const data = atob(base64.split(',')[1]);
-        const mime = base64.split(',')[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
-        const buf = new ArrayBuffer(data.length);
-        const arr = new Uint8Array(buf);
-
-        for (let i = 0; i < data.length; i++) {
-          arr[i] = data.charCodeAt(i);
-        }
-
-        const original = new File([buf], 'temp', { type: mime });
-        if (original.size > 5 * 1024 * 1024) {
-          const compressed = await imageCompression(original, {
-            maxSizeMB: 5,
-            maxWidthOrHeight: 2560,
-            useWebWorker: true,
-          });
-          return new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(compressed);
-          });
-        }
-        return base64;
+        const compressedImage = await compressImageIfNeeded(imageSrc);
+        setCapturedImage(compressedImage);
+        setMainImage(compressedImage);
+        setViewMode('model');
+        setIsCameraOn(false);
+        setSelectedThumbnailIndex(null);
       }
     }
-  }, [mainImage]);
+  }, []);
 
   const toggleCamera = () => {
     setIsCameraOn(!isCameraOn);
@@ -111,109 +93,60 @@ const VirtualTryOn = () => {
   };
 
   const modelChange = async () => {
-    if (loading) return;
+    if (loading || !activeProduct) return;
     setLoading(true);
 
     try {
-      const modelImage =
-        'https://newblog.alua.com/wp-content/uploads/2024/01/1.jpg';
-
-      if (!modelImage) {
-        throw new Error('Product image is undefined');
+      let modelBase64: string;
+      if (capturedImage) {
+        modelBase64 = capturedImage;
+      } else if (selectedThumbnailIndex !== null) {
+        const thumbnailBlob = await fetch(Thumbnails[selectedThumbnailIndex], {
+          headers: { 'Access-Control-Allow-Origin': '*' },
+          cache: 'no-cache',
+        }).then((res) => res.blob());
+        modelBase64 = await blobToBase64(thumbnailBlob);
+      } else {
+        const modelImage =
+          '/model-one.png';
+        const modelBlob = await fetch(modelImage, {
+          headers: { 'Access-Control-Allow-Origin': '*' },
+          cache: 'no-cache',
+        }).then((res) => res.blob());
+        modelBase64 = await blobToBase64(modelBlob);
       }
 
-      const modelBlob = await fetch(modelImage, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
+      const productBlob = await fetch(activeProduct.product_image, {
+        headers: { 'Access-Control-Allow-Origin': '*' },
         cache: 'no-cache',
-      }).then((res) => {
-        return res.blob();
-      });
-
-      const modelBase64 = await blobToBase64(modelBlob);
-
-      const productImage = activeProduct?.image;
-      console.log(productImage, 'active');
-
-      if (!productImage) {
-        throw new Error('Product image is undefined');
-      }
-
-      const productBlob = await fetch(productImage, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
-        cache: 'no-cache',
-      }).then((res) => {
-        return res.blob();
-      });
-
+      }).then((res) => res.blob());
       const productBase64 = await blobToBase64(productBlob);
-      console.log(productBase64);
 
       const sourceImage = await sendImageToServer(
         productBase64,
         modelBase64,
-        selectedCategory
+        selectedCategory,
+        InferenceParams
       );
 
       setMainImage(sourceImage);
     } catch (error) {
-      alert(error);
+      console.error('Error during model change:', error);
+      alert('An error occurred while processing the image.');
     } finally {
       setLoading(false);
     }
   };
 
-  function blobToBase64(blob: Blob): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  }
-
-  const sendImageToServer = async (
-    product: string,
-    model: string,
-    category: string
-  ) => {
-    const { num_inference_steps, seed, guidance_scale } = InferenceParams;
-
-    const response = await fetch(
-      `https://twinverses.in/api/v1/business/tryon`,
-      {
-        method: 'POST',
-        cache: 'no-cache',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': 'abcde',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({
-          product: product,
-          model: model,
-          category: category,
-          num_inference_steps: num_inference_steps,
-          seed: seed,
-          guidance_scale: guidance_scale,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-
-    const data = await response.json();
-    return `data:image/png;base64,${data['result'].slice(2, -1)}`;
+  const handleThumbnailClick = (index: number) => {
+    setSelectedThumbnailIndex(index);
+    setCapturedImage(null);
+    setMainImage(Thumbnails[index]);
+    modelChange();
   };
 
-  const handleThumbnailClick = (index: number) => {
-    const clickedThumbnail = Thumbnails[index];
-    setMainImage(clickedThumbnail);
+  const handleProductChange = (product: Product) => {
+    setActiveProduct(product);
     modelChange();
   };
 
@@ -225,12 +158,6 @@ const VirtualTryOn = () => {
     link.click();
     document.body.removeChild(link);
   }, [mainImage]);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setPageLoading(false);
-    }, 2000);
-  }, []);
 
   if (pageLoading) {
     return <LoadingScreen />;
@@ -253,7 +180,7 @@ const VirtualTryOn = () => {
                   title='Category'
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className='w-full appearance-none border rounded-md px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-900'
+                  className='w-full appearance-none border rounded-md px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-900 capitalize'
                 >
                   {categories.map((category) => (
                     <option
@@ -274,34 +201,32 @@ const VirtualTryOn = () => {
             <div className='flex-1 overflow-y-auto'>
               <h3 className='font-medium mb-4'>Products Recommended</h3>
               <div className='space-y-6'>
-                {Products.map(
-                  (product) =>
-                    selectedCategory === product.category && (
-                      <div
-                        key={product.id}
-                        className='bg-white dark:bg-black shadow-md shadow-gray-500 rounded-lg overflow-hidden'
-                        onClick={() => {
-                          setActiveProduct(product);
-                          modelChange();
-                        }}
-                      >
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className='w-full aspect-square object-cover'
-                        />
-                        <div className='p-4 bg-transparent'>
-                          <h4 className='text-sm text-center mb-3'>
-                            {product.name}
-                          </h4>
-                          <button className='w-full flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 text-sm'>
-                            Product details
-                            <ArrowUpRight size={16} />
-                          </button>
-                        </div>
+                {products
+                  .filter(
+                    (product) => product.product_category === selectedCategory
+                  )
+                  .map((product) => (
+                    <div
+                      key={product.product_id}
+                      className='bg-white dark:bg-black shadow-md shadow-gray-500 rounded-lg overflow-hidden cursor-pointer'
+                      onClick={() => handleProductChange(product)}
+                    >
+                      <img
+                        src={product.product_image}
+                        alt={product.product_name}
+                        className='w-full aspect-square object-cover'
+                      />
+                      <div className='p-4 bg-transparent'>
+                        <h4 className='text-sm text-center mb-3'>
+                          {product.product_name}
+                        </h4>
+                        <button className='w-full flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 text-sm'>
+                          Product details
+                          <ArrowUpRight size={16} />
+                        </button>
                       </div>
-                    )
-                )}
+                    </div>
+                  ))}
               </div>
             </div>
           </motion.div>
@@ -403,7 +328,11 @@ const VirtualTryOn = () => {
                 <motion.div
                   key={index}
                   whileHover={{ scale: 1.05 }}
-                  className='h-16 w-16 rounded-lg overflow-hidden border-2 border-white cursor-pointer'
+                  className={`h-16 w-16 rounded-lg overflow-hidden border-2 cursor-pointer ${
+                    selectedThumbnailIndex === index
+                      ? 'border-purple-500'
+                      : 'border-white'
+                  }`}
                   onClick={() => handleThumbnailClick(index)}
                 >
                   <img
@@ -431,19 +360,21 @@ const VirtualTryOn = () => {
 
         <div className='aspect-square bg-gray-100 rounded-lg overflow-hidden'>
           <img
-            src={originalProduct()?.image}
+            src={activeProduct?.product_image}
             alt='Product'
             className='w-full h-full object-cover'
           />
         </div>
 
-        <h2 className='text-center font-medium text-sm'>
-          {originalProduct()?.name}
+        <h2 className='text-center font-medium text-sm text-white'>
+          {activeProduct?.product_name}
         </h2>
 
         <button
-          className='flex items-center justify-center gap-2 w-full border border-gray-300 rounded-md py-2'
-          onClick={() => window.open(`${Products[0].link}`, '_blank')}
+          className='flex items-center justify-center gap-2 w-full border border-gray-300 rounded-md py-2 text-white'
+          onClick={() =>
+            activeProduct && window.open(activeProduct.product_page, '_blank')
+          }
         >
           Buy Now
           <ArrowUpRight size={18} />
@@ -457,7 +388,9 @@ const VirtualTryOn = () => {
         </button>
 
         <div className='mt-auto'>
-          <h4 className='font-medium my-4 text-xl'>Upload Photo Guidelines</h4>
+          <h4 className='font-medium my-4 text-xl text-white'>
+            Upload Photo Guidelines
+          </h4>
           <ul className='text-sm text-gray-400 space-y-1'>
             <li>🗃️ File Size: Less than 15 MB.</li>
             <li>🧍 Photo Type: Standing photo with only one person.</li>
