@@ -1,4 +1,3 @@
-
 interface Product {
     id: string;
     name: string;
@@ -11,37 +10,37 @@ export const Products: Product[] = [
     {
         id: '1',
         name: 'Teardrop Sparkle Diamond Hoop Earrings',
-        image: '/model-base.webp',
+        image: '/model-base.jpg',
         link: '/product/1',
         category: 'Earrings',
     },
     {
         id: '2',
         name: 'Ethereal Cage Diamond Drop Earrings',
-        image: '/model-one.png',
+        image: '/model-one.jpg',
         link: '/product/2',
         category: 'Earrings',
     },
     {
         id: '3',
         name: 'Classic Pearl Diamond Studs',
-        image: '/model-base.webp',
+        image: '/model-base.jpg',
         link: '/product/2',
         category: 'Studs',
     },
     {
         id: '4',
         name: 'Floral Diamond Drop Earrings',
-        image: '/model-base.webp',
+        image: '/model-base.jpg',
         link: '/product/2',
         category: 'Drops',
     },
 ];
 
 export const Thumbnails = [
-    '/model-base.webp',
-    '/model-one.png',
-    '/model-two.png',
+    '/model-base.jpg',
+    '/model-one.jpg',
+    '/model-two.jpg',
 ]
 
 export const InferenceParams = {

@@ -26,7 +26,7 @@ const VirtualTryOn = () => {
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'You' | 'model'>('model');
   const [showSimilar, setShowSimilar] = useState(false);
-  const [mainImage, setMainImage] = useState('/model-base.webp');
+  const [mainImage, setMainImage] = useState('/model-base.jpg');
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [selectedThumbnailIndex, setSelectedThumbnailIndex] = useState<
@@ -108,7 +108,7 @@ const VirtualTryOn = () => {
         modelBase64 = await blobToBase64(thumbnailBlob);
       } else {
         const modelImage =
-          '/model-one.png';
+          '/model-one.jpg';
         const modelBlob = await fetch(modelImage, {
           headers: { 'Access-Control-Allow-Origin': '*' },
           cache: 'no-cache',
