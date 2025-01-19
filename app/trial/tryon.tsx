@@ -7,6 +7,7 @@ import {
   Camera,
   X,
   LoaderCircle,
+  Menu,
 } from 'lucide-react';
 import { BrandName } from 'components/brand';
 import { InferenceParams, Thumbnails } from 'lib/constants';
@@ -24,8 +25,9 @@ const VirtualTryOn = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<'You' | 'model'>('model');
+  const [viewMode, setViewMode] = useState<'You' | 'model' | 'Upload'>('model');
   const [showSimilar, setShowSimilar] = useState(false);
+  const [view, setView] = useState(true);
   const [mainImage, setMainImage] = useState('/model-base.jpg');
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -107,8 +109,7 @@ const VirtualTryOn = () => {
         }).then((res) => res.blob());
         modelBase64 = await blobToBase64(thumbnailBlob);
       } else {
-        const modelImage =
-          '/model-one.jpg';
+        const modelImage = '/model-one.jpg';
         const modelBlob = await fetch(modelImage, {
           headers: { 'Access-Control-Allow-Origin': '*' },
           cache: 'no-cache',
@@ -159,6 +160,22 @@ const VirtualTryOn = () => {
     document.body.removeChild(link);
   }, [mainImage]);
 
+  const uploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        const compressedImage = await compressImageIfNeeded(base64String);
+        setCapturedImage(compressedImage);
+        setMainImage(compressedImage);
+        setViewMode('model');
+        setIsCameraOn(false);
+        setSelectedThumbnailIndex(null);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   if (pageLoading) {
     return <LoadingScreen />;
   }
@@ -244,7 +261,7 @@ const VirtualTryOn = () => {
 
         {!showSimilar && (
           <motion.div
-            className='absolute top-4 right-4 z-10 bg-black/80 rounded-full p-1 flex gap-1'
+            className='absolute top-8 right-12 z-10 bg-black/80 rounded-full p-1 flex gap-1'
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
@@ -266,7 +283,41 @@ const VirtualTryOn = () => {
             >
               Model
             </button>
+            <button
+              className={`px-3 py-1 rounded-full text-sm ${
+                viewMode === 'Upload' ? 'bg-white text-black' : 'text-white'
+              }`}
+              onClick={() => {
+                setViewMode('Upload');
+                document.getElementById('upload-input')?.click();
+              }}
+            >
+              Upload
+            </button>
+            <input
+              type='file'
+              id='upload-input'
+              accept='image/*'
+              style={{ display: 'none' }}
+              title='Upload your image'
+              onChange={uploadImage}
+            />
           </motion.div>
+        )}
+
+        {!view && (
+          <button
+            type='button'
+            name='menu'
+            title='Open Menu'
+            className='absolute top-8 right-2 z-10 p-1 text-white'
+            onClick={() => {
+              setShowSimilar(false);
+              setView(true);
+            }}
+          >
+            <Menu size={24} />
+          </button>
         )}
 
         <div className='h-full w-full relative'>
@@ -308,7 +359,7 @@ const VirtualTryOn = () => {
             <img
               src={mainImage}
               alt='Virtual Try-on View'
-              className='h-full w-full object-cover'
+              className='h-full w-full aspect-auto'
             />
           )}
 
@@ -346,62 +397,79 @@ const VirtualTryOn = () => {
         </div>
       </div>
 
-      <motion.div
-        className='w-80 bg-black p-6 flex flex-col gap-4'
-        initial={{ x: 100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-      >
-        <button
-          className='bg-purple-500 text-white text-center py-2 rounded-md'
-          onClick={() => modelChange()}
-        >
-          Try On You
-        </button>
+      <AnimatePresence>
+        {view && (
+          <motion.div
+            className='absolute right-0 h-screen z-10 w-80 bg-black p-6 flex flex-col gap-4'
+            initial={{ x: 100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+          >
+            <div className='flex gap-x-4 justify-between'>
+              <button
+                className='bg-purple-500 w-2/3 text-white text-center py-2 rounded-md'
+                onClick={() => modelChange()}
+              >
+                Try On You
+              </button>
+              <button
+                className='bg-red-500 w-1/3 text-white text-center py-2 rounded-md'
+                onClick={() => setView(false)}
+              >
+                Close
+              </button>
+            </div>
 
-        <div className='aspect-square bg-gray-100 rounded-lg overflow-hidden'>
-          <img
-            src={activeProduct?.product_image}
-            alt='Product'
-            className='w-full h-full object-cover'
-          />
-        </div>
+            <div className='aspect-square bg-gray-100 rounded-lg overflow-hidden'>
+              <img
+                src={activeProduct?.product_image}
+                alt='Product'
+                className='w-full h-full object-cover'
+              />
+            </div>
 
-        <h2 className='text-center font-medium text-sm text-white'>
-          {activeProduct?.product_name}
-        </h2>
+            <h2 className='text-center font-medium text-sm text-white'>
+              {activeProduct?.product_name}
+            </h2>
 
-        <button
-          className='flex items-center justify-center gap-2 w-full border border-gray-300 rounded-md py-2 text-white'
-          onClick={() =>
-            activeProduct && window.open(activeProduct.product_page, '_blank')
-          }
-        >
-          Buy Now
-          <ArrowUpRight size={18} />
-        </button>
+            <button
+              className='flex items-center justify-center gap-2 w-full border border-gray-300 rounded-md py-2 text-white'
+              onClick={() =>
+                activeProduct &&
+                window.open(activeProduct.product_page, '_blank')
+              }
+            >
+              Buy Now
+              <ArrowUpRight size={18} />
+            </button>
 
-        <button
-          className='w-full border border-purple-500 text-white py-2 rounded-md'
-          onClick={() => setShowSimilar(!showSimilar)}
-        >
-          {showSimilar ? 'Hide Similar Products' : 'Show Similar Products'}
-        </button>
+            <button
+              className='w-full border border-purple-500 text-white py-2 rounded-md'
+              onClick={() => {
+                setView(false);
+                setShowSimilar(!showSimilar);
+              }}
+            >
+              {showSimilar ? 'Hide Similar Products' : 'Show Similar Products'}
+            </button>
 
-        <div className='mt-auto'>
-          <h4 className='font-medium my-4 text-xl text-white'>
-            Upload Photo Guidelines
-          </h4>
-          <ul className='text-sm text-gray-400 space-y-1'>
-            <li>🗃️ File Size: Less than 15 MB.</li>
-            <li>🧍 Photo Type: Standing photo with only one person.</li>
-            <li>🌟 Background: Keep it clean and free of distractions.</li>
-          </ul>
-        </div>
+            <div className='mt-auto'>
+              <h4 className='font-medium my-4 text-xl text-white'>
+                Upload Photo Guidelines
+              </h4>
+              <ul className='text-sm text-gray-400 space-y-1'>
+                <li>🗃️ File Size: Less than 15 MB.</li>
+                <li>🧍 Photo Type: Standing photo with only one person.</li>
+                <li>🌟 Background: Keep it clean and free of distractions.</li>
+                <li>⚠️ Photo Issues: Try to avoid Green clothes.</li>
+              </ul>
+            </div>
 
-        <div className='text-center text-sm text-gray-400 flex items-center justify-center gap-2'>
-          <p>powered by</p> <BrandName />
-        </div>
-      </motion.div>
+            <div className='text-center text-sm text-gray-400 flex items-center justify-center gap-2'>
+              <p>powered by</p> <BrandName />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
