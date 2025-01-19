@@ -1,7 +1,7 @@
 import type { Product, InferenceParams } from './types';
 
 const API_BASE_URL = 'https://twinverses.in/api/v1/business';
-const API_KEY = 'abcde';
+const API_KEY = 'ece3f635-7537-47da-ad58-0f4b262f73aa';
 
 export async function fetchProducts(): Promise<Product[]> {
     const response = await fetch(`${API_BASE_URL}/products`, {
