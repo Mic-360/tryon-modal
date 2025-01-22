@@ -10,15 +10,24 @@ body {
     color-scheme: dark;
   }
 }
+
 :root {
   --vh: 1vh;
 }
 
+@font-face {
+  font-family: 'archivo';
+  src: url('/archivo.tff') format('ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
 html,
 body {
+  font-family: 'archivo';
   height: 100%;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .h-screen {
@@ -29,25 +38,24 @@ body {
 
 /* Custom scrollbar styles */
 .overflow-y-auto {
-  scrollbar-width: thin;
-  scrollbar-color: #888 #f1f1f1;
+  scrollbar-width: none;
 }
 
 .overflow-y-auto::-webkit-scrollbar {
-  width: 4px;
+  width: 0px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 2px;
+  background: transparent;
+  border-radius: 0.1px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: transparent;
 }
 
 /* Smooth transitions for button states */
@@ -71,18 +79,18 @@ video::-webkit-media-controls {
 /* Responsive adjustments */
 @media (max-width: 640px) {
   html {
-    font-size: 12px;
+    font-size: 11px;
   }
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {
   html {
-    font-size: 13px;
+    font-size: 12px;
   }
 }
 
 @media (min-width: 1025px) {
   html {
-    font-size: 14px;
+    font-size: 13px;
   }
 }
