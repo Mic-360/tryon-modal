@@ -1,15 +1,8 @@
 import { motion } from 'motion/react';
 import { BrandName } from 'components/brand';
+import { fadeInVariants } from 'lib/constants';
 
 const LoadingScreen = () => {
-  const fadeInVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: 'easeOut' },
-    },
-  };
 
   return (
     <div className='h-screen w-screen flex flex-col items-center justify-center text-white bg-white dark:bg-black dark:text-black'>
@@ -45,9 +38,16 @@ const LoadingScreen = () => {
         variants={fadeInVariants}
         initial='initial'
         animate='animate'
-        className='absolute bottom-12'
+        className='absolute bottom-12 flex items-center gap-x-2 text-xs text-gray-400 dark:text-gray-500'
       >
-        <BrandName />
+        <img
+          src='/logo.png'
+          alt='logo'
+          className='h-6 w-8'
+        />
+        <p>
+          powered by <BrandName />
+        </p>
       </motion.div>
     </div>
   );
