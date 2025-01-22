@@ -17,7 +17,7 @@ body {
 
 @font-face {
   font-family: 'archivo';
-  src: url('/archivo.tff') format('ttf');
+  src: url('./archivo.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
