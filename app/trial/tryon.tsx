@@ -101,20 +101,17 @@ const VirtualTryOn = () => {
 
     try {
       let modelBase64: string;
+      
       if (capturedImage) {
         modelBase64 = capturedImage;
       } else if (selectedThumbnailIndex !== null) {
-        const thumbnailBlob = await fetch(Thumbnails[selectedThumbnailIndex], {
-          headers: { 'Access-Control-Allow-Origin': '*' },
-          cache: 'no-cache',
-        }).then((res) => res.blob());
+        const thumbnailBlob = await fetch(
+          Thumbnails[selectedThumbnailIndex]
+        ).then((res) => res.blob());
         modelBase64 = await blobToBase64(thumbnailBlob);
       } else {
         const modelImage = '/model-one.jpg';
-        const modelBlob = await fetch(modelImage, {
-          headers: { 'Access-Control-Allow-Origin': '*' },
-          cache: 'no-cache',
-        }).then((res) => res.blob());
+        const modelBlob = await fetch(modelImage).then((res) => res.blob());
         modelBase64 = await blobToBase64(modelBlob);
       }
 
