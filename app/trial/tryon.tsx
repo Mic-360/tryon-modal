@@ -1,23 +1,22 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { useState, useRef, useCallback, useEffect } from 'react';
-import {
-  ArrowUpRight,
-  Save,
-  ChevronDown,
-  Camera,
-  X,
-  LoaderCircle,
-  Menu,
-  Cross,
-} from 'lucide-react';
 import { BrandName } from 'components/brand';
 import { InferenceParams, Thumbnails } from 'lib/constants';
+import {
+  ArrowUpRight,
+  Camera,
+  ChevronDown,
+  Cross,
+  Menu,
+  Save,
+  X,
+} from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import Webcam from 'react-webcam';
 import LoadingScreen from '~/screens/Loading';
-import { useSearchParams } from 'react-router';
-import type { Product } from '../../lib/types';
-import { compressImageIfNeeded, blobToBase64 } from '../../lib/utils';
 import { fetchProducts, sendImageToServer } from '../../lib/api';
+import type { Product } from '../../lib/types';
+import { blobToBase64, compressImageIfNeeded } from '../../lib/utils';
 
 const VirtualTryOn = () => {
   const [pageLoading, setPageLoading] = useState(true);
@@ -32,9 +31,8 @@ const VirtualTryOn = () => {
   const [mainImage, setMainImage] = useState('/model-base.jpg');
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [selectedThumbnailIndex, setSelectedThumbnailIndex] = useState<
-    number | null
-  >(null);
+  const [selectedThumbnailIndex, setSelectedThumbnailIndex] =
+    useState<number>(0);
 
   const webcamRef = useRef<Webcam>(null);
 
@@ -85,7 +83,7 @@ const VirtualTryOn = () => {
         setMainImage(compressedImage);
         setViewMode('model');
         setIsCameraOn(false);
-        setSelectedThumbnailIndex(null);
+        setSelectedThumbnailIndex(0);
       }
     }
   }, []);
@@ -95,36 +93,35 @@ const VirtualTryOn = () => {
     setViewMode(isCameraOn ? 'model' : 'You');
   };
 
-  const modelChange = async () => {
-    if (loading || !activeProduct) return;
+  const modelChange = async (
+    index: number | null,
+    currentProduct: Product | null
+  ) => {
+    if (loading) return;
     setLoading(true);
 
     try {
-      let modelBase64: string;
-      
+      let modelBase64: string = '';
+
       if (capturedImage) {
         modelBase64 = capturedImage;
-      } else if (selectedThumbnailIndex !== null) {
-        const thumbnailBlob = await fetch(
-          Thumbnails[selectedThumbnailIndex]
-        ).then((res) => res.blob());
-        modelBase64 = await blobToBase64(thumbnailBlob);
       } else {
-        const modelImage = '/model-one.jpg';
-        const modelBlob = await fetch(modelImage).then((res) => res.blob());
-        modelBase64 = await blobToBase64(modelBlob);
+        const thumbnailBlob = await fetch(Thumbnails[index || 0]).then((res) =>
+          res.blob()
+        );
+        modelBase64 = await blobToBase64(thumbnailBlob);
       }
 
-      const productBlob = await fetch(activeProduct.product_image, {
-        headers: { 'Access-Control-Allow-Origin': '*' },
+      const productBlob = await fetch(currentProduct?.product_image || '', {
         cache: 'no-cache',
       }).then((res) => res.blob());
+
       const productBase64 = await blobToBase64(productBlob);
 
       const sourceImage = await sendImageToServer(
         productBase64,
         modelBase64,
-        selectedCategory,
+        activeProduct?.product_type || 'upper',
         InferenceParams
       );
 
@@ -138,15 +135,17 @@ const VirtualTryOn = () => {
   };
 
   const handleThumbnailClick = (index: number) => {
-    setSelectedThumbnailIndex(index);
     setCapturedImage(null);
+    setSelectedThumbnailIndex(index);
     setMainImage(Thumbnails[index]);
-    modelChange();
+    modelChange(index, activeProduct);
   };
 
   const handleProductChange = (product: Product) => {
     setActiveProduct(product);
-    modelChange();
+    modelChange(selectedThumbnailIndex, product);
+    setShowSimilar(false);
+    setView(true);
   };
 
   const handleSave = useCallback(() => {
@@ -169,7 +168,7 @@ const VirtualTryOn = () => {
         setMainImage(compressedImage);
         setViewMode('model');
         setIsCameraOn(false);
-        setSelectedThumbnailIndex(null);
+        setSelectedThumbnailIndex(0);
       };
       reader.readAsDataURL(file);
     }
@@ -181,6 +180,7 @@ const VirtualTryOn = () => {
 
   return (
     <div className='flex h-screen bg-gray-50'>
+      {/* //left sidebar */}
       <AnimatePresence>
         {showSimilar && (
           <motion.div
@@ -205,9 +205,9 @@ const VirtualTryOn = () => {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className='w-full appearance-none border rounded-md px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-900 capitalize'
                 >
-                  {categories.map((category) => (
+                  {categories.map((category, idx) => (
                     <option
-                      key={category}
+                      key={idx}
                       value={category}
                     >
                       {category}
@@ -228,9 +228,9 @@ const VirtualTryOn = () => {
                   .filter(
                     (product) => product.product_category === selectedCategory
                   )
-                  .map((product) => (
+                  .map((product, idx) => (
                     <div
-                      key={product.product_id}
+                      key={idx}
                       className='bg-white dark:bg-black shadow-md shadow-gray-500 rounded-lg overflow-hidden cursor-pointer'
                       onClick={() => handleProductChange(product)}
                     >
@@ -257,17 +257,10 @@ const VirtualTryOn = () => {
       </AnimatePresence>
 
       <div className='flex-1 relative'>
-        <div className='absolute top-4 left-4 z-10'>
-          <img
-            src='/logo.png'
-            alt='Twinverse Logo'
-            className='h-20 p-4'
-          />
-        </div>
-
+        {/* // top buttons upload model and you  */}
         {!showSimilar && (
           <motion.div
-            className='absolute top-8 right-16 z-10 bg-black/80 rounded-full p-1 flex gap-1'
+            className='absolute top-8 left-1/2 transform -translate-x-1/2 z-10 bg-black/80 rounded-full p-1 flex gap-1'
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
@@ -311,22 +304,23 @@ const VirtualTryOn = () => {
           </motion.div>
         )}
 
+        {/* // menu button for right sidebar  */}
         {!view && (
           <button
-            type='button'
-            name='menu'
-            title='Open Menu'
-            className='absolute top-8 right-2 z-10 p-1 text-white bg-black/80 rounded-md'
+            className='absolute top-8 right-4 bg-black/80 text-white p-1 px-2 rounded-full z-10'
             onClick={() => {
               setShowSimilar(false);
               setView(true);
             }}
           >
-            <Menu size={24} />
+            <span className='flex items-center gap-2 px-2'>
+              <Menu size={14} /> Menu
+            </span>
           </button>
         )}
 
         <div className='h-full w-full relative'>
+          {/* // camera capture and main Image setup with loading */}
           {isCameraOn ? (
             <>
               <Webcam
@@ -381,6 +375,7 @@ const VirtualTryOn = () => {
             />
           )}
 
+          {/* // save button  */}
           {!showSimilar && (
             <button
               onClick={handleSave}
@@ -391,6 +386,7 @@ const VirtualTryOn = () => {
             </button>
           )}
 
+          {/* // bottom thumbnails */}
           <div className='absolute bottom-4 left-4 flex gap-2'>
             {!showSimilar &&
               Thumbnails.map((thumbnail, index) => (
@@ -415,6 +411,7 @@ const VirtualTryOn = () => {
         </div>
       </div>
 
+      {/* // right sidebar  */}
       <AnimatePresence>
         {view && (
           <motion.div
@@ -425,7 +422,9 @@ const VirtualTryOn = () => {
             <div className='flex gap-x-4 justify-between'>
               <button
                 className='bg-purple-500 w-2/3 text-white text-center py-2 rounded-md'
-                onClick={() => modelChange()}
+                onClick={() =>
+                  modelChange(selectedThumbnailIndex, activeProduct)
+                }
               >
                 Try On You
               </button>
@@ -482,8 +481,15 @@ const VirtualTryOn = () => {
               </ul>
             </div>
 
-            <div className='text-center text-sm text-gray-400 flex items-center justify-center gap-2'>
-              <p>powered by</p> <BrandName />
+            <div className='text-center text-sm text-gray-400 flex items-center justify-center gap-x-4'>
+              <img
+                src='/logo.png'
+                alt='logo'
+                className='h-6 w-8'
+              />
+              <p>
+                powered by <BrandName />
+              </p>
             </div>
           </motion.div>
         )}
