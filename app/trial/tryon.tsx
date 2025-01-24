@@ -102,60 +102,66 @@ const VirtualTryOn = () => {
     setViewMode(isCameraOn ? 'model' : 'You');
   };
 
-  // const modelChange = async (
-  //   index: number | null,
-  //   currentProduct: Product | null
-  // ) => {
-  //   if (loading) return;
-  //   setLoading(true);
+  const modelChange = async (
+    index: number | null,
+    currentProduct: Product | undefined
+  ) => {
+    if (loading) return;
+    setLoading(true);
 
-  //   try {
-  //     let modelBase64: string = '';
+    try {
+      let modelBase64: string = '';
 
-  //     if (capturedImage) {
-  //       modelBase64 = capturedImage;
-  //     } else {
-  //       const thumbnailBlob = await fetch(Thumbnails[index || 0]).then((res) =>
-  //         res.blob()
-  //       );
-  //       modelBase64 = await blobToBase64(thumbnailBlob);
-  //     }
+      if (capturedImage) {
+        modelBase64 = capturedImage;
+      } else {
+        const thumbnailBlob = await fetch(Thumbnails[index || 0]).then((res) =>
+          res.blob()
+        );
+        modelBase64 = await blobToBase64(thumbnailBlob);
+      }
 
-  //     const productBlob = await fetch(currentProduct?.product_image || '', {
-  //       cache: 'no-cache',
-  //     }).then((res) => res.blob());
+      const productBlob = await fetch(currentProduct?.product_image || '', {
+        cache: 'no-cache',
+      }).then((res) => res.blob());
 
-  //     const productBase64 = await blobToBase64(productBlob);
+      const productBase64 = await blobToBase64(productBlob);
 
-  //     const sourceImage = await sendImageToServer(
-  //       productBase64,
-  //       modelBase64,
-  //       activeProduct?.product_type || 'upper',
-  //       InferenceParams
-  //     );
+      const sourceImage = await sendImageToServer(
+        productBase64,
+        modelBase64,
+        currentProduct?.product_type || 'upper',
+        InferenceParams
+      );
 
-  //     setMainImage(sourceImage);
-  //   } catch (error) {
-  //     console.error('Error during model change:', error);
-  //     alert('An error occurred while processing the image.');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+      setMainImage(sourceImage);
+    } catch (error) {
+      console.error('Error during model change:', error);
+      alert('An error occurred while processing the image.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // const handleThumbnailClick = (index: number) => {
-  //   setCapturedImage(null);
-  //   setSelectedThumbnailIndex(index);
-  //   setMainImage(Thumbnails[index]);
-  //   modelChange(index, activeProduct);
-  // };
+  const handleThumbnailClick = (index: number) => {
+    const trialProduct = products.find(
+      (prod) => parseInt(prod.product_id) === activeProduct?.id
+    );
+    setCapturedImage(null);
+    setSelectedThumbnailIndex(index);
+    setMainImage(Thumbnails[index]);
+    modelChange(index, trialProduct);
+  };
 
-  // const handleProductChange = (product: Product) => {
-  //   setActiveProduct(product);
-  //   modelChange(selectedThumbnailIndex, product);
-  //   setShowSimilar(false);
-  //   setView(true);
-  // };
+  const handleProductChange = (siteproduct: SiteProduct) => {
+    const trialProduct = products.find(
+      (prod) => parseInt(prod.product_id) === siteproduct.id
+    );
+    setActiveProduct(siteproduct);
+    modelChange(selectedThumbnailIndex, trialProduct);
+    setShowSimilar(false);
+    setView(true);
+  };
 
   const handleSave = useCallback(() => {
     const link = document.createElement('a');
@@ -242,7 +248,7 @@ const VirtualTryOn = () => {
                     <div
                       key={idx}
                       className='bg-white dark:bg-black shadow-md shadow-gray-500 rounded-lg overflow-hidden cursor-pointer'
-                      // onClick={() => handleProductChange(product)}
+                      onClick={() => handleProductChange(siteProds)}
                     >
                       <img
                         src={siteProds.images[0].src}
@@ -404,7 +410,7 @@ const VirtualTryOn = () => {
                     ? 'border-purple-500'
                     : 'border-white'
                 }`}
-                // onClick={() => handleThumbnailClick(index)}
+                onClick={() => handleThumbnailClick(index)}
               >
                 <img
                   src={thumbnail}
