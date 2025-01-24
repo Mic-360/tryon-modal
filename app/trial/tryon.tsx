@@ -14,16 +14,21 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import Webcam from 'react-webcam';
 import LoadingScreen from '~/screens/Loading';
-import { fetchProducts, sendImageToServer } from '../../lib/api';
-import type { Product } from '../../lib/types';
+import {
+  fetchProducts,
+  fetchSiteProductImages,
+  sendImageToServer,
+} from '../../lib/api';
+import type { Product, SiteProduct } from '../../lib/types';
 import { blobToBase64, compressImageIfNeeded } from '../../lib/utils';
 
 const VirtualTryOn = () => {
   const [pageLoading, setPageLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
+  const [siteProducts, setSiteProducts] = useState<SiteProduct[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [activeProduct, setActiveProduct] = useState<Product | null>(null);
+  const [activeProduct, setActiveProduct] = useState<SiteProduct | null>(null);
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'You' | 'model' | 'Upload'>('model');
   const [showSimilar, setShowSimilar] = useState(false);
@@ -32,7 +37,7 @@ const VirtualTryOn = () => {
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [selectedThumbnailIndex, setSelectedThumbnailIndex] =
-    useState<number>(0);
+    useState(0);
 
   const webcamRef = useRef<Webcam>(null);
 
@@ -40,23 +45,23 @@ const VirtualTryOn = () => {
     const initializeProducts = async () => {
       try {
         const fetchedProducts = await fetchProducts();
-        console.log(
-          'Fetched products:',
-          fetchedProducts.map((p) => p.product_id)
-        );
+
         setProducts(fetchedProducts);
+
         const productId = searchParams.get('productId');
+
+        const nudeSiteProducts = await fetchSiteProductImages();
+
+        setSiteProducts(nudeSiteProducts);
+
         if (productId) {
-          const chosenProduct = fetchedProducts.find(
-            (product) => product.product_id === productId
+          const chosenProduct = nudeSiteProducts.find(
+            (product: SiteProduct) => product.id == parseInt(productId)
           );
           if (chosenProduct) {
             setActiveProduct(chosenProduct);
-            setSelectedCategory(chosenProduct.product_category);
+            setSelectedCategory(chosenProduct.product_type);
           }
-        } else if (fetchedProducts.length > 0) {
-          setActiveProduct(fetchedProducts[0]);
-          setSelectedCategory(fetchedProducts[0].product_category);
         }
       } catch (error) {
         console.error('Failed to fetch products:', error);
@@ -69,7 +74,7 @@ const VirtualTryOn = () => {
   }, [searchParams]);
 
   const categories = Array.from(
-    new Set(products.map((product) => product.product_category))
+    new Set(siteProducts.map((nudeProd: SiteProduct) => nudeProd.product_type))
   );
 
   const videoConstraints = {
@@ -97,60 +102,60 @@ const VirtualTryOn = () => {
     setViewMode(isCameraOn ? 'model' : 'You');
   };
 
-  const modelChange = async (
-    index: number | null,
-    currentProduct: Product | null
-  ) => {
-    if (loading) return;
-    setLoading(true);
+  // const modelChange = async (
+  //   index: number | null,
+  //   currentProduct: Product | null
+  // ) => {
+  //   if (loading) return;
+  //   setLoading(true);
 
-    try {
-      let modelBase64: string = '';
+  //   try {
+  //     let modelBase64: string = '';
 
-      if (capturedImage) {
-        modelBase64 = capturedImage;
-      } else {
-        const thumbnailBlob = await fetch(Thumbnails[index || 0]).then((res) =>
-          res.blob()
-        );
-        modelBase64 = await blobToBase64(thumbnailBlob);
-      }
+  //     if (capturedImage) {
+  //       modelBase64 = capturedImage;
+  //     } else {
+  //       const thumbnailBlob = await fetch(Thumbnails[index || 0]).then((res) =>
+  //         res.blob()
+  //       );
+  //       modelBase64 = await blobToBase64(thumbnailBlob);
+  //     }
 
-      const productBlob = await fetch(currentProduct?.product_image || '', {
-        cache: 'no-cache',
-      }).then((res) => res.blob());
+  //     const productBlob = await fetch(currentProduct?.product_image || '', {
+  //       cache: 'no-cache',
+  //     }).then((res) => res.blob());
 
-      const productBase64 = await blobToBase64(productBlob);
+  //     const productBase64 = await blobToBase64(productBlob);
 
-      const sourceImage = await sendImageToServer(
-        productBase64,
-        modelBase64,
-        activeProduct?.product_type || 'upper',
-        InferenceParams
-      );
+  //     const sourceImage = await sendImageToServer(
+  //       productBase64,
+  //       modelBase64,
+  //       activeProduct?.product_type || 'upper',
+  //       InferenceParams
+  //     );
 
-      setMainImage(sourceImage);
-    } catch (error) {
-      console.error('Error during model change:', error);
-      alert('An error occurred while processing the image.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     setMainImage(sourceImage);
+  //   } catch (error) {
+  //     console.error('Error during model change:', error);
+  //     alert('An error occurred while processing the image.');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  const handleThumbnailClick = (index: number) => {
-    setCapturedImage(null);
-    setSelectedThumbnailIndex(index);
-    setMainImage(Thumbnails[index]);
-    modelChange(index, activeProduct);
-  };
+  // const handleThumbnailClick = (index: number) => {
+  //   setCapturedImage(null);
+  //   setSelectedThumbnailIndex(index);
+  //   setMainImage(Thumbnails[index]);
+  //   modelChange(index, activeProduct);
+  // };
 
-  const handleProductChange = (product: Product) => {
-    setActiveProduct(product);
-    modelChange(selectedThumbnailIndex, product);
-    setShowSimilar(false);
-    setView(true);
-  };
+  // const handleProductChange = (product: Product) => {
+  //   setActiveProduct(product);
+  //   modelChange(selectedThumbnailIndex, product);
+  //   setShowSimilar(false);
+  //   setView(true);
+  // };
 
   const handleSave = useCallback(() => {
     const link = document.createElement('a');
@@ -228,26 +233,35 @@ const VirtualTryOn = () => {
             <div className='flex-1 overflow-y-auto'>
               <h3 className='font-medium mb-4'>Products Recommended</h3>
               <div className='space-y-6'>
-                {products
+                {siteProducts
                   .filter(
-                    (product) => product.product_category === selectedCategory
+                    (siteProds: SiteProduct) =>
+                      siteProds.product_type === selectedCategory
                   )
-                  .map((product, idx) => (
+                  .map((siteProds: SiteProduct, idx: number) => (
                     <div
                       key={idx}
                       className='bg-white dark:bg-black shadow-md shadow-gray-500 rounded-lg overflow-hidden cursor-pointer'
-                      onClick={() => handleProductChange(product)}
+                      // onClick={() => handleProductChange(product)}
                     >
                       <img
-                        src={product.product_image}
-                        alt={product.product_name}
+                        src={siteProds.images[0].src}
+                        alt={siteProds.title}
                         className='w-full aspect-square object-cover'
                       />
                       <div className='p-4 bg-transparent'>
                         <h4 className='text-sm text-center mb-3'>
-                          {product.product_name}
+                          {siteProds.title}
                         </h4>
-                        <button className='w-full flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 text-sm'>
+                        <button
+                          className='w-full flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 text-sm'
+                          onClick={() =>
+                            window.open(
+                              `https://shopatnude.com/collections/all-products/products/${siteProds.handle}`,
+                              '_blank'
+                            )
+                          }
+                        >
                           Product details
                           <ArrowUpRight size={16} />
                         </button>
@@ -390,7 +404,7 @@ const VirtualTryOn = () => {
                     ? 'border-purple-500'
                     : 'border-white'
                 }`}
-                onClick={() => handleThumbnailClick(index)}
+                // onClick={() => handleThumbnailClick(index)}
               >
                 <img
                   src={thumbnail}
@@ -414,9 +428,9 @@ const VirtualTryOn = () => {
             <div className='flex gap-x-4 justify-between'>
               <button
                 className='bg-purple-500 w-2/3 text-white text-center py-2 rounded-md'
-                onClick={() =>
-                  modelChange(selectedThumbnailIndex, activeProduct)
-                }
+                // onClick={() =>
+                //   modelChange(selectedThumbnailIndex, activeProduct)
+                // }
               >
                 Try On You
               </button>
@@ -430,21 +444,24 @@ const VirtualTryOn = () => {
 
             <div className='aspect-square bg-gray-100 rounded-lg overflow-hidden'>
               <img
-                src={activeProduct?.product_image}
+                src={activeProduct?.images[0].src}
                 alt='Product'
                 className='w-full h-full object-cover'
               />
             </div>
 
             <h2 className='text-center font-medium text-sm text-white'>
-              {activeProduct?.product_name}
+              {activeProduct?.title}
             </h2>
 
             <button
               className='flex items-center justify-center gap-2 w-full border border-gray-300 rounded-md py-2 text-white'
               onClick={() =>
                 activeProduct &&
-                window.open(activeProduct.product_page, '_blank')
+                window.open(
+                  `https://shopatnude.com/collections/all-products/products/${activeProduct.handle}`,
+                  '_blank'
+                )
               }
             >
               Buy Now

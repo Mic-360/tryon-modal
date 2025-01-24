@@ -1,4 +1,4 @@
-import type { Product, InferenceParams } from './types';
+import type { Product, InferenceParams, SiteProduct } from './types';
 
 const API_BASE_URL = 'https://twinverses.in/api/v1/business';
 const API_KEY = 'ece3f635-7537-47da-ad58-0f4b262f73aa';
@@ -9,6 +9,13 @@ export async function fetchSiteProductImages() {
         throw new Error('Failed to fetch products');
     }
     const { products } = await response.json();
+
+    products.forEach((product: SiteProduct) => {
+        if (product.product_type === '') {
+            product.product_type = 'combos & trousers';
+        }
+    });
+
     return products;
 }
 
