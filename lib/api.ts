@@ -10,13 +10,9 @@ export async function fetchSiteProductImages() {
     }
     const { products } = await response.json();
 
-    products.forEach((product: SiteProduct) => {
-        if (product.product_type === '') {
-            product.product_type = 'combos & trousers';
-        }
-    });
+    const tryOnReadyProducts = products.filter((product: SiteProduct) => product.product_type === 'T-shirt');
 
-    return products;
+    return tryOnReadyProducts;
 }
 
 export async function fetchProducts(): Promise<Product[]> {
