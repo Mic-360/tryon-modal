@@ -1,4 +1,4 @@
-import type { Route } from "./+types/home";
+import type { Route } from "./+types/trial";
 import VirtualTryOn from "~/trial/tryon";
 
 export function meta({}: Route.MetaArgs) {
