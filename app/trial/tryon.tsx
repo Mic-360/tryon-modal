@@ -434,9 +434,12 @@ const VirtualTryOn = () => {
             <div className='flex gap-x-4 justify-between'>
               <button
                 className='bg-purple-500 w-2/3 text-white text-center py-2 rounded-md'
-                // onClick={() =>
-                //   modelChange(selectedThumbnailIndex, activeProduct)
-                // }
+                onClick={() => {
+                  const trialProduct = products.find(
+      (prod) => parseInt(prod.product_id) === activeProduct.id
+    );
+                  modelChange(selectedThumbnailIndex, trialProduct)
+                }}
               >
                 Try On You
               </button>
