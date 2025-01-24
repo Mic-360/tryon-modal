@@ -36,8 +36,7 @@ const VirtualTryOn = () => {
   const [mainImage, setMainImage] = useState('/model-base.jpg');
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [selectedThumbnailIndex, setSelectedThumbnailIndex] =
-    useState(0);
+  const [selectedThumbnailIndex, setSelectedThumbnailIndex] = useState(0);
 
   const webcamRef = useRef<Webcam>(null);
 
@@ -51,8 +50,13 @@ const VirtualTryOn = () => {
         const productId = searchParams.get('productId');
 
         const nudeSiteProducts = await fetchSiteProductImages();
-
-        setSiteProducts(nudeSiteProducts);
+        const filteredProducts = nudeSiteProducts.filter(
+          (nudeProduct: SiteProduct) =>
+            products.some(
+              (product) => parseInt(product.product_id) === nudeProduct.id
+            )
+        );
+        setSiteProducts(filteredProducts);
 
         if (productId) {
           const chosenProduct = nudeSiteProducts.find(
@@ -436,9 +440,9 @@ const VirtualTryOn = () => {
                 className='bg-purple-500 w-2/3 text-white text-center py-2 rounded-md'
                 onClick={() => {
                   const trialProduct = products.find(
-      (prod) => parseInt(prod.product_id) === activeProduct.id
-    );
-                  modelChange(selectedThumbnailIndex, trialProduct)
+                    (prod) => parseInt(prod.product_id) === activeProduct?.id
+                  );
+                  modelChange(selectedThumbnailIndex, trialProduct);
                 }}
               >
                 Try On You
