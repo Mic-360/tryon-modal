@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
+        <title>Products</title>
         <style>
             body {
                 font-family: Arial, sans-serif;
@@ -12,11 +12,12 @@
 
             .navbar {
                 display: flex;
-                justify-content: space-between;
+                justify-content: center;
                 align-items: center;
                 padding: 10px;
                 background-color: #333;
                 color: white;
+                border-radius: 25px;
             }
 
             .navbar .logo-title {
@@ -25,7 +26,7 @@
             }
 
             .navbar .logo {
-                width: 50px;
+                width: 180px;
                 height: 50px;
                 margin-right: 10px;
             }
@@ -93,37 +94,71 @@
         <div class="navbar">
             <div class="logo-title">
                 <img alt="Logo" class="logo"
-                    src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/adonisjs/adonisjs-original.svg" />
-                <h1>Twintry iFrame Tester</h1>
-            </div>
-            <a href="contact.html" style="color: white;">Tester Logs</a>
-        </div>
-        <div class="grid">
-            <div class="card">
-                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/adonisjs/adonisjs-original.svg"
-                    alt="Image 1">
-                <h2>Random Image</h2>
-                <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Debitis repellendus quae iusto?</p>
-                <button>Add to Wishlist</button>
-                <button class="tryon-btn">Try On</button>
+                    src="https://shopatnude.com/cdn/shop/files/nude_logo-2_c60b913f-4a70-4cea-8520-648b742f6677.png?v=1733829695&width=200" />
+                <h1>iFrame Tester</h1>
             </div>
         </div>
+
+        <div class="grid" id="product-grid">
+            <!-- Products will be dynamically inserted here -->
+        </div>
+
         <div class="modal" id="tryon-modal">
             <div class="modal-content">
-                <iframe allow="camera;" src="http://localhost:5173/?productId=" frameborder="0"></iframe>
+                <iframe id="tryon-iframe" allow="camera;" src="" frameborder="0"></iframe>
             </div>
         </div>
+
         <script>
-            document.querySelectorAll('.tryon-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    document.getElementById('tryon-modal').style.display = 'flex';
+            async function fetchProducts() {
+                try {
+                    const response = await fetch('https://shopatnude.com/collections/all-products/products.json');
+                    const data = await response.json();
+
+                    const productGrid = document.getElementById('product-grid');
+                    productGrid.innerHTML = '';
+
+                    data.products.forEach(product => {
+                        const productCard = document.createElement('div');
+                        productCard.className = 'card';
+
+                        const productImage = product.images[0]?.src || 'https://via.placeholder.com/200';
+                        const productTitle = product.title;
+
+                        productCard.innerHTML = `
+                        <img src="${productImage}" alt="${productTitle}">
+                        <h2>${productTitle}</h2>
+                        <button class="wishlist-btn">Add to Wishlist</button>
+                        <button class="tryon-btn" data-product-id="${product.id}">Try On</button>
+                    `;
+
+                        productGrid.appendChild(productCard);
+                    });
+
+                    setupTryOnButtons();
+                } catch (error) {
+                    console.error('Error fetching products:', error);
+                }
+            }
+
+            function setupTryOnButtons() {
+                document.querySelectorAll('.tryon-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const productId = e.target.dataset.productId;
+                        const iframe = document.getElementById('tryon-iframe');
+                        iframe.src = `http://localhost:5173/?productId=${productId}`;
+                        document.getElementById('tryon-modal').style.display = 'flex';
+                    });
                 });
-            });
+            }
+
             document.getElementById('tryon-modal').addEventListener('click', (e) => {
                 if (e.target === e.currentTarget) {
                     e.currentTarget.style.display = 'none';
                 }
             });
+
+            fetchProducts();
         </script>
     </body>
 
