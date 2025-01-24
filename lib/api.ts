@@ -3,6 +3,15 @@ import type { Product, InferenceParams } from './types';
 const API_BASE_URL = 'https://twinverses.in/api/v1/business';
 const API_KEY = 'ece3f635-7537-47da-ad58-0f4b262f73aa';
 
+export async function fetchSiteProductImages() {
+    const response = await fetch('https://shopatnude.com/collections/all/products.json');
+    if (!response.ok) {
+        throw new Error('Failed to fetch products');
+    }
+    const { products } = await response.json();
+    return products;
+}
+
 export async function fetchProducts(): Promise<Product[]> {
     const response = await fetch(`${API_BASE_URL}/products`, {
         headers: {
