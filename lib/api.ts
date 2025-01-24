@@ -3,7 +3,7 @@ import type { Product, InferenceParams, SiteProduct } from './types';
 const API_BASE_URL = 'https://twinverses.in/api/v1/business';
 const API_KEY = 'ece3f635-7537-47da-ad58-0f4b262f73aa';
 
-export async function fetchSiteProductImages() {
+export async function fetchSiteProductImages(stripedProds: Product[]) {
     const response = await fetch('https://shopatnude.com/collections/all/products.json');
     if (!response.ok) {
         throw new Error('Failed to fetch products');
@@ -12,7 +12,14 @@ export async function fetchSiteProductImages() {
 
     const tryOnReadyProducts = products.filter((product: SiteProduct) => product.product_type === 'T-shirt');
 
-    return tryOnReadyProducts;
+    const filteredProducts = tryOnReadyProducts.filter(
+        (nudeProduct: SiteProduct) =>
+            stripedProds.some(
+                (product) => parseInt(product.product_id) === nudeProduct.id
+            )
+    );
+
+    return filteredProducts;
 }
 
 export async function fetchProducts(): Promise<Product[]> {

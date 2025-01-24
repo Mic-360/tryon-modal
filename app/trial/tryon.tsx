@@ -49,14 +49,9 @@ const VirtualTryOn = () => {
 
         const productId = searchParams.get('productId');
 
-        const nudeSiteProducts = await fetchSiteProductImages();
-        const filteredProducts = nudeSiteProducts.filter(
-          (nudeProduct: SiteProduct) =>
-            products.some(
-              (product) => parseInt(product.product_id) === nudeProduct.id
-            )
-        );
-        setSiteProducts(filteredProducts);
+        const nudeSiteProducts = await fetchSiteProductImages(fetchedProducts);
+
+        setSiteProducts(nudeSiteProducts);
 
         if (productId) {
           const chosenProduct = nudeSiteProducts.find(
@@ -257,7 +252,7 @@ const VirtualTryOn = () => {
                       <img
                         src={siteProds.images[0].src}
                         alt={siteProds.title}
-                        className='w-full aspect-square object-cover'
+                        className='w-full aspect-square object-center'
                       />
                       <div className='p-4 bg-transparent'>
                         <h4 className='text-sm text-center mb-3'>
@@ -399,7 +394,7 @@ const VirtualTryOn = () => {
             <img
               src={mainImage}
               alt='Virtual Try-on View'
-              className='h-full w-full aspect-auto'
+              className='h-full w-full aspect-auto object-center'
             />
           )}
 
@@ -431,7 +426,7 @@ const VirtualTryOn = () => {
       <AnimatePresence>
         {view && (
           <motion.div
-            className='h-screen w-64 md:w-80 bg-black p-6 flex flex-col gap-4'
+            className='h-screen w-64 md:w-80 bg-black p-6 flex flex-col gap-4 z-10'
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
           >
@@ -459,7 +454,7 @@ const VirtualTryOn = () => {
               <img
                 src={activeProduct?.images[0].src}
                 alt='Product'
-                className='w-full h-full object-cover'
+                className='w-full aspect-square object-center'
               />
             </div>
 
