@@ -11,7 +11,7 @@ import type { Route } from "./+types/root";
 import stylesheet from "./app.css?url";
 
 export const links: Route.LinksFunction = () => [
-  { rel: "stylesheet", href: "/archivo.tff" },
+  { rel: "stylesheet", href: "./archivo.tff" },
   { rel: "stylesheet", href: stylesheet },
   { rel: "icon", type: "image/png", href: "./favicon.ico" },
 ];
