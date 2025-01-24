@@ -40,6 +40,10 @@ const VirtualTryOn = () => {
     const initializeProducts = async () => {
       try {
         const fetchedProducts = await fetchProducts();
+        console.log(
+          'Fetched products:',
+          fetchedProducts.map((p) => p.product_id)
+        );
         setProducts(fetchedProducts);
         const productId = searchParams.get('productId');
         if (productId) {
@@ -187,7 +191,7 @@ const VirtualTryOn = () => {
             initial={{ x: -300, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
-            className='w-80 dark:bg-black p-6 border-r overflow-hidden flex flex-col'
+            className='w-64 md:w-80 dark:bg-black p-6 border-r overflow-hidden flex flex-col'
           >
             <div className='mb-6'>
               <div className='flex items-center justify-between mb-4'>
@@ -363,7 +367,7 @@ const VirtualTryOn = () => {
                   />
                 </svg>
                 <p className='text-black dark:text-white text-xl font-medium'>
-                  Please Wait ...
+                  Loading your Virtual Try-on Experience ...
                 </p>
               </div>
             </div>
@@ -375,38 +379,26 @@ const VirtualTryOn = () => {
             />
           )}
 
-          {/* // save button  */}
-          {!showSimilar && (
-            <button
-              onClick={handleSave}
-              className='absolute bottom-4 right-4 flex items-center gap-2 bg-black/80 text-white px-4 py-2 rounded-lg'
-            >
-              <Save size={20} />
-              Save
-            </button>
-          )}
-
           {/* // bottom thumbnails */}
           <div className='absolute bottom-4 left-4 flex gap-2'>
-            {!showSimilar &&
-              Thumbnails.map((thumbnail, index) => (
-                <motion.div
-                  key={index}
-                  whileHover={{ scale: 1.05 }}
-                  className={`h-16 w-16 rounded-lg overflow-hidden border-2 cursor-pointer ${
-                    selectedThumbnailIndex === index
-                      ? 'border-purple-500'
-                      : 'border-white'
-                  }`}
-                  onClick={() => handleThumbnailClick(index)}
-                >
-                  <img
-                    src={thumbnail}
-                    alt={`View ${index + 1}`}
-                    className='h-full w-full object-cover'
-                  />
-                </motion.div>
-              ))}
+            {Thumbnails.map((thumbnail, index) => (
+              <motion.div
+                key={index}
+                whileHover={{ scale: 1.05 }}
+                className={`h-16 w-16 rounded-lg overflow-hidden border-2 cursor-pointer ${
+                  selectedThumbnailIndex === index
+                    ? 'border-purple-500'
+                    : 'border-white'
+                }`}
+                onClick={() => handleThumbnailClick(index)}
+              >
+                <img
+                  src={thumbnail}
+                  alt={`View ${index + 1}`}
+                  className='h-full w-full object-cover'
+                />
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>
@@ -415,7 +407,7 @@ const VirtualTryOn = () => {
       <AnimatePresence>
         {view && (
           <motion.div
-            className='absolute right-0 h-screen z-10 w-80 bg-black p-6 flex flex-col gap-4'
+            className='h-screen w-64 md:w-80 bg-black p-6 flex flex-col gap-4'
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
           >
@@ -469,6 +461,14 @@ const VirtualTryOn = () => {
               {showSimilar ? 'Hide Similar Products' : 'Show Similar Products'}
             </button>
 
+            <button
+              onClick={handleSave}
+              className='flex items-center justify-center gap-2 w-full border border-gray-300 text-lg rounded-md py-2 text-white'
+            >
+              <Save size={14} />
+              Save
+            </button>
+
             <div className='mt-auto'>
               <h4 className='font-medium my-4 text-xl text-white'>
                 Upload Photo Guidelines
@@ -481,7 +481,7 @@ const VirtualTryOn = () => {
               </ul>
             </div>
 
-            <div className='text-center text-sm text-gray-400 flex items-center justify-center gap-x-4'>
+            <div className='text-center text-sm text-gray-400 flex items-center justify-center gap-x-2'>
               <img
                 src='/logo.png'
                 alt='logo'
