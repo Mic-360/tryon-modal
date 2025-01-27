@@ -217,7 +217,7 @@ const VirtualTryOn = () => {
             initial={{ x: -300, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
-            className='absolute top-0 left-0 z-20 w-64 md:w-80 dark:bg-black p-6 border-r overflow-hidden flex flex-col h-full'
+            className='h-full absolute sm:static top-0 left-0 z-20 w-64 md:w-80 dark:bg-black p-6 border-r overflow-hidden flex flex-col'
           >
             <div className='mb-6'>
               <div className='flex items-center justify-between mb-4'>
@@ -480,7 +480,7 @@ const VirtualTryOn = () => {
       <AnimatePresence>
         {view && (
           <motion.div
-            className='h-full absolute top-0 right-0 z-20 w-64 md:w-80 bg-black p-6 flex flex-col gap-4'
+            className='h-full absolute sm:static top-0 right-0 z-20 w-64 md:w-80 bg-black p-6 flex flex-col gap-4'
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
           >
