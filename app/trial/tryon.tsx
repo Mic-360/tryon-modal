@@ -282,7 +282,7 @@ const VirtualTryOn = () => {
                           onClick={() =>
                             window.open(
                               `https://shopatnude.com/collections/all-products/products/${siteProds.handle}`,
-                              '_blank'
+                              '_self'
                             )
                           }
                         >
@@ -520,8 +520,7 @@ const VirtualTryOn = () => {
               onClick={() =>
                 activeProduct &&
                 window.open(
-                  `https://shopatnude.com/collections/all-products/products/${activeProduct.handle}`,
-                  '_blank'
+                  `https://shopatnude.com/collections/all-products/products/${activeProduct.handle}`, '_self'
                 )
               }
             >
