@@ -224,7 +224,10 @@ const VirtualTryOn = () => {
                 <label className='block text-xl mb-2'>Category</label>{' '}
                 <Cross
                   size={20}
-                  onClick={() => setShowSimilar(false)}
+                  onClick={() => {
+                    setShowSimilar(false);
+                    setView(true);
+                  }}
                   className='rotate-45'
                 />
               </div>
@@ -493,7 +496,7 @@ const VirtualTryOn = () => {
                 Save
               </button>
               <button
-                className='bg-red-500 w-1/3 text-white text-center p-1 rounded-md'
+                className='bg-red-500 w-1/3 sm:hidden text-white text-center p-1 rounded-md'
                 onClick={() => setView(false)}
               >
                 Close
