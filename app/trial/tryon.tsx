@@ -7,6 +7,7 @@ import {
   Cross,
   Menu,
   Save,
+  SwitchCamera,
   X,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
@@ -96,6 +97,21 @@ const VirtualTryOn = () => {
     }
   }, []);
 
+  const switchCamera = () => {
+    const currentConstraints = (
+      webcamRef.current?.video?.srcObject as MediaStream
+    )
+      ?.getVideoTracks()[0]
+      .getConstraints();
+    if (currentConstraints) {
+      const newFacingMode =
+        currentConstraints.facingMode === 'user' ? 'environment' : 'user';
+      (webcamRef.current?.video?.srcObject as MediaStream)
+        ?.getVideoTracks()[0]
+        .applyConstraints({ facingMode: newFacingMode });
+    }
+  };
+
   const toggleCamera = () => {
     setIsCameraOn(!isCameraOn);
     setViewMode(isCameraOn ? 'model' : 'You');
@@ -143,21 +159,21 @@ const VirtualTryOn = () => {
   };
 
   const handleThumbnailClick = (index: number) => {
-    const trialProduct = products.find(
-      (prod) => parseInt(prod.product_id) === activeProduct?.id
-    );
-    setCapturedImage(null);
+    // const trialProduct = products.find(
+    //   (prod) => parseInt(prod.product_id) === activeProduct?.id
+    // );
+    // setCapturedImage(null);
     setSelectedThumbnailIndex(index);
     setMainImage(Thumbnails[index]);
-    modelChange(index, trialProduct);
+    // modelChange(index, trialProduct);
   };
 
   const handleProductChange = (siteproduct: SiteProduct) => {
-    const trialProduct = products.find(
-      (prod) => parseInt(prod.product_id) === siteproduct.id
-    );
+    // const trialProduct = products.find(
+    //   (prod) => parseInt(prod.product_id) === siteproduct.id
+    // );
     setActiveProduct(siteproduct);
-    modelChange(selectedThumbnailIndex, trialProduct);
+    // modelChange(selectedThumbnailIndex, trialProduct);
     setShowSimilar(false);
     setView(true);
   };
@@ -193,7 +209,7 @@ const VirtualTryOn = () => {
   }
 
   return (
-    <div className='flex h-screen bg-gray-50'>
+    <div className='flex h-full bg-gray-50'>
       {/* //left sidebar */}
       <AnimatePresence>
         {showSimilar && (
@@ -201,7 +217,7 @@ const VirtualTryOn = () => {
             initial={{ x: -300, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
-            className='w-64 md:w-80 dark:bg-black p-6 border-r overflow-hidden flex flex-col'
+            className='absolute top-0 left-0 z-20 w-64 md:w-80 dark:bg-black p-6 border-r overflow-hidden flex flex-col h-full'
           >
             <div className='mb-6'>
               <div className='flex items-center justify-between mb-4'>
@@ -301,7 +317,10 @@ const VirtualTryOn = () => {
               className={`px-3 py-1 rounded-full text-sm ${
                 viewMode === 'model' ? 'bg-white text-black' : 'text-white'
               }`}
-              onClick={() => setViewMode('model')}
+              onClick={() => {
+                setViewMode('model');
+                setIsCameraOn(false);
+              }}
             >
               Model
             </button>
@@ -353,16 +372,25 @@ const VirtualTryOn = () => {
                 videoConstraints={videoConstraints}
                 className='h-full w-full object-cover'
               />
-              <button
-                title='Capture Image'
-                onClick={captureImage}
-                className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 text-black p-4 rounded-full hover:bg-white'
-              >
-                <Camera size={24} />
-              </button>
+              <div className='absolute bottom-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex gap-4'>
+                <button
+                  title='Capture Image'
+                  onClick={captureImage}
+                  className='bg-white/90 text-black p-4 rounded-full hover:bg-white'
+                >
+                  <Camera size={24} />
+                </button>
+                <button
+                  title='Switch Camera'
+                  onClick={switchCamera}
+                  className='bg-white/90 text-black p-4 rounded-full hover:bg-white'
+                >
+                  <SwitchCamera size={24} />
+                </button>
+              </div>
             </>
           ) : loading ? (
-            <div className='h-full w-full flex items-center justify-center relative'>
+            <div className='h-full w-full flex items-center justify-center relative -backdrop-brightness-50'>
               <img
                 src={mainImage}
                 alt='Virtual Try-on View'
@@ -385,7 +413,7 @@ const VirtualTryOn = () => {
                     fill='currentFill'
                   />
                 </svg>
-                <p className='text-black dark:text-white text-xl font-medium'>
+                <p className='text-black dark:text-black/60 text-xl font-medium'>
                   Loading your Virtual Try-on Experience ...
                 </p>
               </div>
@@ -394,7 +422,7 @@ const VirtualTryOn = () => {
             <img
               src={mainImage}
               alt='Virtual Try-on View'
-              className='h-full w-full aspect-auto object-center'
+              className='h-full w-full aspect-auto object-center  md:py-0'
             />
           )}
 
@@ -414,10 +442,36 @@ const VirtualTryOn = () => {
                 <img
                   src={thumbnail}
                   alt={`View ${index + 1}`}
-                  className='h-full w-full object-cover'
+                  className='h-full w-full aspect-auto object-center'
                 />
               </motion.div>
             ))}
+          </div>
+
+          <div className='absolute bottom-6 right-4'>
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              className={
+                'rounded-lg overflow-hidden cursor-pointer flex justify-center'
+              }
+            >
+              <button
+                className='bg-purple-500 text-white text-center py-2 px-4 shadow-lg transform transition-transform hover:scale-95 hover:shadow-xl rounded-lg flex items-center justify-center gap-x-2 text-xl font-medium border-2'
+                onClick={() => {
+                  const trialProduct = products.find(
+                    (prod) => parseInt(prod.product_id) === activeProduct?.id
+                  );
+                  modelChange(selectedThumbnailIndex, trialProduct);
+                }}
+              >
+                Try On{' '}
+                <img
+                  src='/logo.png'
+                  alt='logo'
+                  className='h-6 w-8 p-1 inline-block'
+                />
+              </button>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -426,24 +480,20 @@ const VirtualTryOn = () => {
       <AnimatePresence>
         {view && (
           <motion.div
-            className='h-screen w-64 md:w-80 bg-black p-6 flex flex-col gap-4 z-10'
+            className='h-full absolute top-0 right-0 z-20 w-64 md:w-80 bg-black p-6 flex flex-col gap-4'
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
           >
             <div className='flex gap-x-4 justify-between'>
               <button
-                className='bg-purple-500 w-2/3 text-white text-center py-2 rounded-md'
-                onClick={() => {
-                  const trialProduct = products.find(
-                    (prod) => parseInt(prod.product_id) === activeProduct?.id
-                  );
-                  modelChange(selectedThumbnailIndex, trialProduct);
-                }}
+                onClick={handleSave}
+                className='flex items-center justify-center gap-2 w-full border border-gray-300 text-lg rounded-md py-2 text-white'
               >
-                Try On You
+                <Save size={14} />
+                Save
               </button>
               <button
-                className='bg-red-500 w-1/3 text-white text-center py-2 rounded-md'
+                className='bg-red-500 w-1/3 text-white text-center p-1 rounded-md'
                 onClick={() => setView(false)}
               >
                 Close
@@ -484,14 +534,6 @@ const VirtualTryOn = () => {
               }}
             >
               {showSimilar ? 'Hide Similar Products' : 'Show Similar Products'}
-            </button>
-
-            <button
-              onClick={handleSave}
-              className='flex items-center justify-center gap-2 w-full border border-gray-300 text-lg rounded-md py-2 text-white'
-            >
-              <Save size={14} />
-              Save
             </button>
 
             <div className='mt-auto'>
