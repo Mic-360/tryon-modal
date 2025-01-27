@@ -39,9 +39,9 @@ export const Products: Product[] = [
 
 export const Thumbnails = [
     '/model-base.jpg',
-    '/model-one.png',
-    '/model-two.png',
-    '/model-three.png',
+    '/model-one.jpg',
+    '/model-two.jpg',
+    '/model-three.jpg',
 ]
 
 export const InferenceParams = {
