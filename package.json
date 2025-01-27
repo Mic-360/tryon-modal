@@ -12,6 +12,7 @@
     "@react-router/node": "^7.1.1",
     "@react-router/serve": "^7.1.1",
     "@vercel/analytics": "^1.4.1",
+    "@vercel/speed-insights": "^1.1.0",
     "browser-image-compression": "^2.0.2",
     "isbot": "^5.1.17",
     "lucide-react": "^0.469.0",
