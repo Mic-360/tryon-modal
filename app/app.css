@@ -17,7 +17,7 @@ body {
 
 @font-face {
   font-family: 'archivo';
-  src: url('./archivo.ttf') format('truetype');
+  src: url('/archivo.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
@@ -33,7 +33,7 @@ body {
 .h-screen {
   height: 100vh;
   /* Fallback for browsers that do not support Custom Properties */
-  height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 2vh) * 100);
 }
 
 /* Custom scrollbar styles */
