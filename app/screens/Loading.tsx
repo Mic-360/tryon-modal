@@ -29,7 +29,7 @@ const LoadingScreen = () => {
         variants={fadeInVariants}
         initial='initial'
         animate='animate'
-        className='mt-8 text-lg font-semibold tracking-wider text-black dark:text-white'
+        className='my-8 text-lg font-semibold tracking-wider text-black dark:text-white'
       >
         Loading your Virtual Try-on Experience
       </motion.p>
@@ -38,7 +38,7 @@ const LoadingScreen = () => {
         variants={fadeInVariants}
         initial='initial'
         animate='animate'
-        className='absolute bottom-12 flex items-center gap-x-2 text-xs text-gray-400 dark:text-gray-500'
+        className='flex items-center gap-x-2 text-md text-gray-300 dark:text-gray-400'
       >
         <img
           src='/logo.png'
