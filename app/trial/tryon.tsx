@@ -40,6 +40,9 @@ const VirtualTryOn = () => {
   const [selectedThumbnailIndex, setSelectedThumbnailIndex] = useState(0);
 
   const webcamRef = useRef<Webcam>(null);
+  const [facingMode, setFacingMode] = useState<
+    'user' | { exact: 'environment' }
+  >('user');
 
   useEffect(() => {
     const initializeProducts = async () => {
@@ -77,7 +80,11 @@ const VirtualTryOn = () => {
     new Set(siteProducts.map((nudeProd: SiteProduct) => nudeProd.product_type))
   );
 
-  const videoConstraints = {
+  const videoConstraints: {
+    width: number;
+    height: number;
+    facingMode: string | { exact: string };
+  } = {
     width: 1280,
     height: 720,
     facingMode: 'user',
@@ -97,20 +104,11 @@ const VirtualTryOn = () => {
     }
   }, []);
 
-  const switchCamera = () => {
-    const currentConstraints = (
-      webcamRef.current?.video?.srcObject as MediaStream
-    )
-      ?.getVideoTracks()[0]
-      .getConstraints();
-    if (currentConstraints) {
-      const newFacingMode =
-        currentConstraints.facingMode === 'user' ? 'environment' : 'user';
-      (webcamRef.current?.video?.srcObject as MediaStream)
-        ?.getVideoTracks()[0]
-        .applyConstraints({ facingMode: newFacingMode });
-    }
-  };
+  const switchCamera = useCallback(() => {
+    setFacingMode((prevMode) =>
+      prevMode === 'user' ? { exact: 'environment' } : 'user'
+    );
+  }, []);
 
   const toggleCamera = () => {
     setIsCameraOn(!isCameraOn);
@@ -372,8 +370,9 @@ const VirtualTryOn = () => {
                 audio={false}
                 ref={webcamRef}
                 screenshotFormat='image/jpeg'
-                videoConstraints={videoConstraints}
+                videoConstraints={{ ...videoConstraints, facingMode }}
                 className='h-full w-full object-cover'
+                mirrored
               />
               <div className='absolute bottom-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex gap-4'>
                 <button
