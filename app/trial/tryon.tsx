@@ -37,7 +37,9 @@ const VirtualTryOn = () => {
   const [mainImage, setMainImage] = useState('/model-base.jpg');
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [selectedThumbnailIndex, setSelectedThumbnailIndex] = useState(0);
+  const [selectedThumbnailIndex, setSelectedThumbnailIndex] = useState<
+    number | null
+  >(0);
 
   const webcamRef = useRef<Webcam>(null);
   const [facingMode, setFacingMode] = useState<
@@ -99,7 +101,7 @@ const VirtualTryOn = () => {
         setMainImage(compressedImage);
         setViewMode('model');
         setIsCameraOn(false);
-        setSelectedThumbnailIndex(0);
+        setSelectedThumbnailIndex(null);
       }
     }
   }, []);
@@ -160,7 +162,7 @@ const VirtualTryOn = () => {
     // const trialProduct = products.find(
     //   (prod) => parseInt(prod.product_id) === activeProduct?.id
     // );
-    // setCapturedImage(null);
+    setCapturedImage(null);
     setSelectedThumbnailIndex(index);
     setMainImage(Thumbnails[index]);
     // modelChange(index, trialProduct);
@@ -176,6 +178,16 @@ const VirtualTryOn = () => {
     setView(true);
   };
 
+  const handleTryOn = () => {
+    const trialProduct = products.find(
+      (prod) => parseInt(prod.product_id) === activeProduct?.id
+    );
+    if (selectedThumbnailIndex) {
+      modelChange(selectedThumbnailIndex, trialProduct);
+    } else {
+      modelChange(null, trialProduct);
+    }
+  };
   const handleSave = useCallback(() => {
     const link = document.createElement('a');
     link.href = mainImage;
@@ -458,13 +470,9 @@ const VirtualTryOn = () => {
               }
             >
               <button
-                className='bg-purple-500 text-white text-center py-2 px-4 shadow-lg transform transition-transform hover:scale-95 hover:shadow-xl rounded-lg flex items-center justify-center gap-x-2 text-xl font-medium border-2'
-                onClick={() => {
-                  const trialProduct = products.find(
-                    (prod) => parseInt(prod.product_id) === activeProduct?.id
-                  );
-                  modelChange(selectedThumbnailIndex, trialProduct);
-                }}
+                className='bg-purple-500 text-white text-center py-2 px-4 shadow-lg transform transition-transform hover:scale-95 hover:shadow-xl rounded-lg flex items-center justify-center gap-x-2 text-xl font-medium border-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gradient-to-r disabled:from-gray-400 disabled:to-gray-200'
+                onClick={() => handleTryOn()}
+                disabled={isCameraOn}
               >
                 Try On{' '}
                 <img
