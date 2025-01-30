@@ -70,8 +70,6 @@ const VirtualTryOn = () => {
         }
       } catch (error) {
         console.error('Failed to fetch products:', error);
-      } finally {
-        setPageLoading(false);
       }
     };
 
@@ -113,7 +111,9 @@ const VirtualTryOn = () => {
   }, []);
 
   const toggleCamera = () => {
-    setIsCameraOn(!isCameraOn);
+    setLoading(true);
+    setTimeout(() => setLoading(false), 5000);
+    setIsCameraOn((prev) => !prev);
     setViewMode(isCameraOn ? 'model' : 'You');
   };
 
@@ -215,7 +215,7 @@ const VirtualTryOn = () => {
   };
 
   if (pageLoading) {
-    return <LoadingScreen />;
+    return <LoadingScreen setPageLoading={setPageLoading} />;
   }
 
   return (
@@ -410,7 +410,7 @@ const VirtualTryOn = () => {
                 alt='Virtual Try-on View'
                 className='h-full w-full object-center aspect-auto blur-lg'
               />
-              <GuidelinesLoader />
+              <GuidelinesLoader setPageLoading={setPageLoading} />
             </div>
           ) : (
             <img
@@ -527,9 +527,20 @@ const VirtualTryOn = () => {
             </button>
 
             <div className='mt-auto'>
-              <h4 className='font-medium my-4 text-xl text-white'>
-                Upload Photo Guidelines
-              </h4>
+              <button
+                type='button'
+                onClick={() => {
+                  setLoading(true);
+                  setTimeout(() => setLoading(false), 5000);
+                }}
+                className='font-medium my-4 text-start text-xl text-white space-x-2'
+              >
+                <span>Upload Photo Guidelines</span>
+                <ArrowUpRight
+                  size={16}
+                  className='inline-block'
+                />
+              </button>
               <ul className='text-sm text-gray-400 space-y-1'>
                 <li>🗃️ File Size: Less than 15 MB.</li>
                 <li>🧍 Photo Type: Standing photo with only one person.</li>
