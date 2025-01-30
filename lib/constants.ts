@@ -58,3 +58,26 @@ export const fadeInVariants = {
         transition: { duration: 0.6, ease: 'easeOut' },
     },
 };
+
+export const guidelines = [
+    {
+        title: "Photo Quality",
+        text: "Use high-resolution, well-lit, and clear images. Avoid blurry, pixelated, or overexposed photos.",
+        position: "top",
+    },
+    {
+        title: "Body Posture",
+        text: "Stand straight with arms slightly away from the body. Maintain a relaxed and natural posture.",
+        position: "right",
+    },
+    {
+        title: "Selfie Guidelines",
+        text: "Use a front-facing camera with good lighting. Hold the camera at eye level to avoid distortion.",
+        position: "bottom",
+    },
+    {
+        title: "Clothing Colors",
+        text: "Wear solid-colored clothing that contrasts with the background. Avoid patterns or complex designs.",
+        position: "left",
+    },
+]
