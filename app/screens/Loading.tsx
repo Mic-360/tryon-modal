@@ -59,7 +59,7 @@ export default LoadingScreen;
 
 export function GuidelinesLoader() {
   return (
-    <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 backdrop-blur-sm flex items-center justify-center z-10 p-4 overflow-y-auto w-full'>
+    <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10 p-4 overflow-y-auto w-full'>
       <div className='bg-white rounded-2xl p-3 sm:p-4 md:p-6 w-full max-w-[800px] mx-auto my-4'>
         {/* Header */}
         <div className='flex items-center justify-center gap-2 mb-4'>
