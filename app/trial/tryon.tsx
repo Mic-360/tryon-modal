@@ -111,6 +111,8 @@ const VirtualTryOn = () => {
   }, []);
 
   const toggleCamera = () => {
+    setLoading(true);
+    setTimeout(() => setLoading(false), 5000);
     setIsCameraOn((prev) => !prev);
     setViewMode(isCameraOn ? 'model' : 'You');
   };
