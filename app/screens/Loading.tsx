@@ -20,7 +20,7 @@ const LoadingScreen = ({
     return <GuidelinesLoader setPageLoading={setPageLoading} />;
   }
   return (
-    <div className='h-screen w-screen flex flex-col items-center justify-center text-white bg-white dark:bg-black dark:text-black'>
+    <div className='h-screen w-screen flex flex-col gap-2 items-center justify-center text-white bg-white dark:bg-black dark:text-black'>
       <div role='status'>
         <svg
           aria-hidden='true'
@@ -68,7 +68,7 @@ export function GuidelinesLoader({
 }) {
   return (
     <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10 p-4 overflow-y-auto w-full'>
-      <div className='relative bg-white/20 rounded-2xl p-3 sm:p-4 md:p-6 w-full max-w-[800px] mx-auto my-4'>
+      <div className='relative bg-white/60 rounded-2xl p-3 sm:p-4 md:p-6 w-full max-w-[800px] mx-auto my-4'>
         <motion.button
           onClick={() => setPageLoading(false)}
           className='absolute -top-2 -right-2  text-gray-900 bg-purple-400 p-2 rounded-full'
@@ -81,7 +81,7 @@ export function GuidelinesLoader({
 
         {/* Header */}
         <div className='flex items-center text-center justify-center gap-2 mb-4 max-w-md mx-auto'>
-          <h2 className='text-base sm:text-lg font-semibold text-gray-100'>
+          <h2 className='text-base sm:text-lg font-semibold text-gray-900'>
             Your Tryon is ready kindly read the guidelines to get a better
             experience
           </h2>
@@ -167,8 +167,8 @@ export function GuidelinesLoader({
         </div>
 
         {/* Footer tip */}
-        <div className='text-center text-xs text-gray-100 mt-4'>
-          <span className='font-medium text-purple-500'>Pro tip:</span> A white
+        <div className='text-center text-xs text-gray-900 mt-4'>
+          <span className='font-medium text-purple-600'>Pro tip:</span> A white
           or light-colored background is recommended for better segmentation
         </div>
       </div>

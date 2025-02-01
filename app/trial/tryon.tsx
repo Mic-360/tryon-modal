@@ -111,8 +111,6 @@ const VirtualTryOn = () => {
   }, []);
 
   const toggleCamera = () => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 5000);
     setIsCameraOn((prev) => !prev);
     setViewMode(isCameraOn ? 'model' : 'You');
   };
@@ -159,21 +157,13 @@ const VirtualTryOn = () => {
   };
 
   const handleThumbnailClick = (index: number) => {
-    // const trialProduct = products.find(
-    //   (prod) => parseInt(prod.product_id) === activeProduct?.id
-    // );
     setCapturedImage(null);
     setSelectedThumbnailIndex(index);
     setMainImage(Thumbnails[index]);
-    // modelChange(index, trialProduct);
   };
 
   const handleProductChange = (siteproduct: SiteProduct) => {
-    // const trialProduct = products.find(
-    //   (prod) => parseInt(prod.product_id) === siteproduct.id
-    // );
     setActiveProduct(siteproduct);
-    // modelChange(selectedThumbnailIndex, trialProduct);
     setShowSimilar(false);
     setView(true);
   };
@@ -530,6 +520,7 @@ const VirtualTryOn = () => {
               <button
                 type='button'
                 onClick={() => {
+                  setView(false);
                   setLoading(true);
                   setTimeout(() => setLoading(false), 5000);
                 }}
