@@ -1,13 +1,13 @@
 import { motion } from 'motion/react';
 import { BrandName } from 'components/brand';
 import { fadeInVariants, guidelines } from 'lib/constants';
-import { Loader2, X, XIcon } from 'lucide-react';
+import { XIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const LoadingScreen = ({
   setPageLoading,
 }: {
-  setPageLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    setPageLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [showGuidelines, setShowGuidelines] = useState(false);
   useEffect(() => {
@@ -21,7 +21,10 @@ const LoadingScreen = ({
   }
   return (
     <div className='h-screen w-screen flex flex-col gap-2 items-center justify-center text-white bg-white dark:bg-black dark:text-black'>
-      <div role='status'>
+      <div
+        role='status'
+        className='relative'
+      >
         <svg
           aria-hidden='true'
           className='w-20 h-20 text-gray-200 animate-spin dark:text-gray-600 fill-purple-400'
@@ -39,18 +42,18 @@ const LoadingScreen = ({
           />
         </svg>
         <span className='sr-only'>Loading...</span>
+        <img
+          src='/logo.png'
+          alt='logo'
+          className='h-6 w-8 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
+        />
       </div>
       <motion.div
         variants={fadeInVariants}
         initial='initial'
         animate='animate'
-        className='flex items-center gap-x-2 text-md text-gray-300 dark:text-gray-400'
+        className='flex items-center text-md text-gray-300 dark:text-gray-400'
       >
-        <img
-          src='/logo.png'
-          alt='logo'
-          className='h-6 w-8'
-        />
         <p>
           powered by <BrandName />
         </p>
@@ -68,7 +71,7 @@ export function GuidelinesLoader({
 }) {
   return (
     <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10 p-2 my-2 w-full max-w-[700px]'>
-      <div className='relative bg-white/60 rounded-2xl p-2 sm:p-3 md:p-4 w-full max-w-[700px] mx-auto my-2'>
+      <div className='relative bg-white rounded-2xl p-2 sm:p-3 md:p-4 w-full max-w-[700px] mx-auto my-2'>
       <motion.button
         onClick={() => setPageLoading(false)}
         className='absolute -top-2 -right-2 text-gray-900 bg-purple-400 p-2 rounded-full'
