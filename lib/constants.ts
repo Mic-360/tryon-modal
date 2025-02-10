@@ -61,23 +61,13 @@ export const fadeInVariants = {
 
 export const guidelines = [
     {
-        title: "Photo Quality",
-        text: "Use high-resolution, well-lit, and clear images. Avoid blurry, pixelated, or overexposed photos.",
-        position: "top",
+        title: "Body Posture and Selfie Guidelines",
+        dos: "Stand straight, arms slightly away. Use front-facing camera at eye level.",
+        donts: "Avoid slouching or angled poses. Don't use low or high camera angles.",
     },
     {
-        title: "Body Posture",
-        text: "Stand straight with arms slightly away from the body. Maintain a relaxed and natural posture.",
-        position: "right",
-    },
-    {
-        title: "Selfie Guidelines",
-        text: "Use a front-facing camera with good lighting. Hold the camera at eye level to avoid distortion.",
-        position: "bottom",
-    },
-    {
-        title: "Clothing Colors",
-        text: "Wear solid-colored clothing that contrasts with the background. Avoid patterns or complex designs.",
-        position: "left",
+        title: "Clothing Colors and Background",
+        dos: "Wear solid colors contrasting with background. Use plain, light-colored backdrop.",
+        donts: "Avoid patterns or logos. Don't use busy or dark backgrounds.",
     },
 ]

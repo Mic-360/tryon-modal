@@ -1,13 +1,13 @@
 import { motion } from 'motion/react';
 import { BrandName } from 'components/brand';
 import { fadeInVariants, guidelines } from 'lib/constants';
-import { XIcon } from 'lucide-react';
+import { CheckCircle, XCircle, XIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const LoadingScreen = ({
   setPageLoading,
 }: {
-    setPageLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setPageLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [showGuidelines, setShowGuidelines] = useState(false);
   useEffect(() => {
@@ -70,110 +70,78 @@ export function GuidelinesLoader({
   setPageLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   return (
-    <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10 p-2 my-2 w-full max-w-[700px]'>
-      <div className='relative bg-white rounded-2xl p-2 sm:p-3 md:p-4 w-full max-w-[700px] mx-auto my-2'>
-      <motion.button
-        onClick={() => setPageLoading(false)}
-        className='absolute -top-2 -right-2 text-gray-900 bg-purple-400 p-2 rounded-full'
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <XIcon className='h-6 w-6' />
-      </motion.button>
+    <div className='fixed top-0 left-0 h-screen w-screen flex items-center justify-center z-10 p-4'>
+      <div className='relative bg-white rounded-2xl p-4 w-full max-w-screen-sm'>
+        <motion.button
+          onClick={() => setPageLoading(false)}
+          className='absolute -top-2 -right-2 text-gray-900 bg-purple-400 p-2 rounded-full hover:bg-purple-500 transition-colors'
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <XIcon className='h-5 w-5' />
+        </motion.button>
 
-      {/* Header */}
-      <div className='flex items-center text-center justify-center gap-2 mb-3 max-w-md mx-auto'>
-        <h2 className='text-base sm:text-lg font-semibold text-gray-900'>
-        Your Tryon is ready kindly read the guidelines to get a better
-        experience
-        </h2>
-      </div>
-
-      {/* Main content container */}
-      <div className='relative flex flex-col sm:flex-row items-center justify-center gap-2 md:gap-3'>
-        {/* Left column guidelines */}
-        <div className='max-w-[200px] flex flex-col gap-2 flex-1'>
-        {guidelines.slice(3, 4).map((guideline, index) => (
-          <div
-          key={index}
-          className='bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-xl border border-gray-100 transform transition-all duration-300 hover:scale-105'
-          >
-          <h3 className='font-semibold text-purple-600 mb-1 text-sm'>
-            {guideline.title}
-          </h3>
-          <p className='text-xs text-gray-600'>{guideline.text}</p>
-          </div>
-        ))}
+        {/* Header */}
+        <div className='text-center mb-4'>
+          <h2 className='text-base font-medium text-gray-900'>
+            For best results, please follow these guidelines for the reference
+            images:
+          </h2>
         </div>
 
-        {/* Center column with image and top/bottom guidelines */}
-        <div className='flex flex-col items-center gap-2 max-w-[200px]'>
-        {/* Top guidelines */}
-        <div className='w-full'>
-          {guidelines.slice(0, 1).map((guideline, index) => (
+        {/* Guidelines and Images */}
+        {guidelines.map((guideline, index) => (
           <div
             key={index}
-            className='bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-xl border border-gray-100 transform transition-all duration-300 hover:scale-105'
+            className='mb-6'
           >
-            <h3 className='font-semibold text-purple-600 mb-1 text-sm'>
-            {guideline.title}
+            <h3 className='text-sm font-semibold text-gray-800 mb-2'>
+              {guideline.title}
             </h3>
-            <p className='text-xs text-gray-600'>{guideline.text}</p>
-          </div>
-          ))}
-        </div>
-
-        {/* Reference Image */}
-        <div className='relative max-h-[250px]'>
-          <img
-          src='/model-one.png'
-          alt='Reference photo showing ideal pose and lighting'
-          className='w-full h-full object-center rounded-lg shadow-xl'
-          />
-          <div className='absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-md' />
-          <p className='absolute bottom-4 left-4 right-4 text-white text-sm text-center'>
-          Follow these guidelines for the best tryon experience
-          </p>
-        </div>
-
-        {/* Bottom guidelines */}
-        <div className='w-full'>
-          {guidelines.slice(2, 3).map((guideline, index) => (
-          <div
-            key={index}
-            className='bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-xl border border-gray-100 transform transition-all duration-300 hover:scale-105'
-          >
-            <h3 className='font-semibold text-purple-600 mb-1 text-sm'>
-            {guideline.title}
-            </h3>
-            <p className='text-xs text-gray-600'>{guideline.text}</p>
-          </div>
-          ))}
-        </div>
-        </div>
-
-        {/* Right column guidelines */}
-        <div className='flex flex-col gap-2 flex-1 max-w-[200px]'>
-        {guidelines.slice(1, 2).map((guideline, index) => (
-          <div
-          key={index}
-          className='bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-xl border border-gray-100 transform transition-all duration-300 hover:scale-105'
-          >
-          <h3 className='font-semibold text-purple-600 mb-1 text-sm'>
-            {guideline.title}
-          </h3>
-          <p className='text-xs text-gray-600'>{guideline.text}</p>
+            <div className='grid grid-cols-2 gap-4 mb-2'>
+              <div className='flex flex-col items-center'>
+                <div className='relative w-full pb-60 rounded-lg overflow-hidden bg-gray-100 mb-2'>
+                  <img
+                    src='/model-one.png'
+                    alt={`Do example for ${guideline.title}`}
+                    className='absolute inset-0 w-full h-full object-center'
+                  />
+                </div>
+                <CheckCircle className='h-5 w-5 text-green-500' />
+                <p className='text-xs text-gray-600 mt-1 text-center'>Do</p>
+              </div>
+              <div className='flex flex-col items-center'>
+                <div className='relative w-full pb-60 rounded-lg overflow-hidden bg-gray-100 mb-2'>
+                  <img
+                    src='/model-one.png'
+                    alt={`Don't example for ${guideline.title}`}
+                    className='absolute inset-0 w-full h-full object-center'
+                  />
+                </div>
+                <XCircle className='h-5 w-5 text-red-500' />
+                <p className='text-xs text-gray-600 mt-1 text-center'>Don't</p>
+              </div>
+            </div>
+            <div className='text-xs text-gray-700 space-y-2'>
+              <p>
+                <span className='font-medium text-green-500'>Do:</span>{' '}
+                {guideline.dos}
+              </p>
+              <p>
+                <span className='font-medium text-red-500'>Don't:</span>{' '}
+                {guideline.donts}
+              </p>
+            </div>
+            <hr className='my-2' />
           </div>
         ))}
-        </div>
-      </div>
 
-      {/* Footer tip */}
-      <div className='text-center text-xs text-gray-900 mt-3'>
-        <span className='font-medium text-purple-600'>Pro tip:</span> A white
-        or light-colored background is recommended for better segmentation
-      </div>
+        {/* Footer tip */}
+        <div className='text-center text-xs text-gray-700 mt-4'>
+          <span className='font-medium text-purple-400'>Pro tip:</span> Ensure
+          both your head and hands are fully visible in the photo
+        </div>
       </div>
     </div>
   );
