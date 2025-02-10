@@ -1,3 +1,5 @@
+import { image } from "motion/react-client";
+
 interface Product {
     id: string;
     name: string;
@@ -64,10 +66,18 @@ export const guidelines = [
         title: "Body Posture and Selfie Guidelines",
         dos: "Stand straight, arms slightly away. Use front-facing camera at eye level.",
         donts: "Avoid slouching or angled poses. Don't use low or high camera angles.",
+        images: [
+            '/model-base.jpg',
+            '/dont-1.jpg',
+        ],
     },
     {
         title: "Clothing Colors and Background",
         dos: "Wear solid colors contrasting with background. Use plain, light-colored backdrop.",
         donts: "Avoid patterns or logos. Don't use busy or dark backgrounds.",
+        images: [
+            '/model-base.jpg',
+            '/dont-2.jpg',
+        ],
     },
 ]

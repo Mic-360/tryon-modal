@@ -70,8 +70,8 @@ export function GuidelinesLoader({
   setPageLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   return (
-    <div className='fixed top-0 left-0 h-screen w-screen flex items-center justify-center z-10 p-4'>
-      <div className='relative bg-white rounded-2xl p-4 w-full max-w-screen-sm'>
+    <div className='min-h-screen w-screen flex items-center justify-center z-10 p-4'>
+      <div className='relative bg-white rounded-2xl p-4 w-full max-w-screen-sm shadow-lg'>
         <motion.button
           onClick={() => setPageLoading(false)}
           className='absolute -top-2 -right-2 text-gray-900 bg-purple-400 p-2 rounded-full hover:bg-purple-500 transition-colors'
@@ -83,7 +83,7 @@ export function GuidelinesLoader({
         </motion.button>
 
         {/* Header */}
-        <div className='text-center mb-4'>
+        <div className='text-center mb-2'>
           <h2 className='text-base font-medium text-gray-900'>
             For best results, please follow these guidelines for the reference
             images:
@@ -94,16 +94,15 @@ export function GuidelinesLoader({
         {guidelines.map((guideline, index) => (
           <div
             key={index}
-            className='mb-6'
           >
             <h3 className='text-sm font-semibold text-gray-800 mb-2'>
               {guideline.title}
             </h3>
             <div className='grid grid-cols-2 gap-4 mb-2'>
               <div className='flex flex-col items-center'>
-                <div className='relative w-full pb-60 rounded-lg overflow-hidden bg-gray-100 mb-2'>
+                <div className='relative w-44 pb-52 rounded-lg overflow-hidden bg-gray-100 mb-2'>
                   <img
-                    src='/model-one.png'
+                    src={guideline.images[0]}
                     alt={`Do example for ${guideline.title}`}
                     className='absolute inset-0 w-full h-full object-center'
                   />
@@ -112,9 +111,9 @@ export function GuidelinesLoader({
                 <p className='text-xs text-gray-600 mt-1 text-center'>Do</p>
               </div>
               <div className='flex flex-col items-center'>
-                <div className='relative w-full pb-60 rounded-lg overflow-hidden bg-gray-100 mb-2'>
+                <div className='relative w-44 pb-52 rounded-lg overflow-hidden bg-gray-100 mb-2'>
                   <img
-                    src='/model-one.png'
+                    src={guideline.images[1]}
                     alt={`Don't example for ${guideline.title}`}
                     className='absolute inset-0 w-full h-full object-center'
                   />
