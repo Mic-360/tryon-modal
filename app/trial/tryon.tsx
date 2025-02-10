@@ -11,10 +11,10 @@ import {
   X,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import Webcam from 'react-webcam';
-import LoadingScreen, { GuidelinesLoader } from '~/screens/Loading';
+import LoadingScreen from '~/screens/Loading';
 import {
   fetchProducts,
   fetchSiteProductImages,
@@ -45,6 +45,12 @@ const VirtualTryOn = () => {
   const [facingMode, setFacingMode] = useState<
     'user' | { exact: 'environment' }
   >('user');
+
+  // New state variables for the timer
+  const [timer, setTimer] = useState<number | null>(null);
+  const [selectedTimerValue, setSelectedTimerValue] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     const initializeProducts = async () => {
@@ -100,6 +106,8 @@ const VirtualTryOn = () => {
         setViewMode('model');
         setIsCameraOn(false);
         setSelectedThumbnailIndex(null);
+        setTimer(null); // Reset timer after capturing
+        setSelectedTimerValue(null);
       }
     }
   }, []);
@@ -113,6 +121,8 @@ const VirtualTryOn = () => {
   const toggleCamera = () => {
     setIsCameraOn((prev) => !prev);
     setViewMode(isCameraOn ? 'model' : 'You');
+    setTimer(null); // Reset timer when toggling camera
+    setSelectedTimerValue(null);
   };
 
   const modelChange = async (
@@ -203,6 +213,28 @@ const VirtualTryOn = () => {
       reader.readAsDataURL(file);
     }
   };
+
+  // Function to start the timer
+  const startTimer = (seconds: number) => {
+    setSelectedTimerValue(seconds);
+    setTimer(seconds);
+  };
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (timer && timer > 0 && isCameraOn && facingMode === 'user') {
+      intervalId = setInterval(() => {
+        setTimer((prevTimer) => (prevTimer ? prevTimer - 1 : null));
+      }, 1000);
+    } else if (timer === 0 && isCameraOn && facingMode === 'user') {
+      captureImage();
+      setTimer(null);
+      setSelectedTimerValue(null);
+    }
+
+    return () => clearInterval(intervalId);
+  }, [timer, isCameraOn, captureImage, facingMode]);
 
   if (pageLoading) {
     return <LoadingScreen setPageLoading={setPageLoading} />;
@@ -365,7 +397,6 @@ const VirtualTryOn = () => {
         )}
 
         <div className='h-full w-full relative'>
-          {/* // camera capture and main Image setup with loading */}
           {isCameraOn ? (
             <>
               <Webcam
@@ -376,21 +407,54 @@ const VirtualTryOn = () => {
                 className='h-full w-full object-cover'
                 mirrored
               />
-              <div className='absolute bottom-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex gap-4'>
-                <button
-                  title='Capture Image'
-                  onClick={captureImage}
-                  className='bg-white/90 text-black p-4 rounded-full hover:bg-white'
+              {/* timer buttons */}
+              <div className='absolute bottom-1/4 right-0 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-2'>
+                {[5, 10, 15].map((seconds) => (
+                  <button
+                    key={seconds}
+                    title={`Set timer for ${seconds} seconds`}
+                    onClick={() => startTimer(seconds)}
+                    className={` bg-black/80 text-white p-4 rounded-full hover:bg-white hover:text-black ${
+                      selectedTimerValue === seconds ? 'bg-purple-400' : ''
+                    }`}
+                  >
+                    {seconds}
+                  </button>
+                ))}
+              </div>
+
+              {/* // timer  */}
+              {timer !== null && timer >= 0 && (
+                <motion.div
+                  className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-5xl font-bold'
+                  initial={{ opacity: 0, scale: 1 }}
+                  animate={{ opacity: 1, scale: 2.5 }}
+                  exit={{ opacity: 0, scale: 1 }}
+                  transition={{ duration: 0.5 }}
                 >
-                  <Camera size={24} />
-                </button>
-                <button
-                  title='Switch Camera'
-                  onClick={switchCamera}
-                  className='bg-white/90 text-black p-4 rounded-full hover:bg-white'
-                >
-                  <SwitchCamera size={24} />
-                </button>
+                  {timer}
+                </motion.div>
+              )}
+
+              {/* // camera buttons */}
+              <div className='absolute bottom-5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4'>
+                <div className='flex gap-4'>
+                  <button
+                    title='Capture Image'
+                    onClick={captureImage}
+                    className='bg-black/80 text-white p-4 rounded-full hover:bg-white hover:text-black'
+                    disabled={timer !== null && timer > 0}
+                  >
+                    <Camera size={24} />
+                  </button>
+                  <button
+                    title='Switch Camera'
+                    onClick={switchCamera}
+                    className='bg-black/80 text-white p-4 rounded-full hover:bg-white hover:text-black'
+                  >
+                    <SwitchCamera size={24} />
+                  </button>
+                </div>
               </div>
             </>
           ) : loading ? (
@@ -448,48 +512,51 @@ const VirtualTryOn = () => {
           )}
 
           {/* // bottom thumbnails */}
-          <div className='absolute bottom-4 left-4 flex gap-2'>
-            {Thumbnails.map((thumbnail, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ scale: 1.05 }}
-                className={`h-16 w-16 rounded-lg overflow-hidden border-2 cursor-pointer ${
-                  selectedThumbnailIndex === index
-                    ? 'border-purple-500'
-                    : 'border-white'
-                }`}
-                onClick={() => handleThumbnailClick(index)}
-              >
-                <img
-                  src={thumbnail}
-                  alt={`View ${index + 1}`}
-                  className='h-full w-full aspect-auto object-center'
-                />
-              </motion.div>
-            ))}
-          </div>
+          {viewMode === 'model' && !isCameraOn && (
+            <div className='absolute bottom-4 left-4 flex gap-2'>
+              {Thumbnails.map((thumbnail, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ scale: 1.05 }}
+                  className={`h-16 w-16 rounded-lg overflow-hidden border-2 cursor-pointer ${
+                    selectedThumbnailIndex === index
+                      ? 'border-purple-500'
+                      : 'border-white'
+                  }`}
+                  onClick={() => handleThumbnailClick(index)}
+                >
+                  <img
+                    src={thumbnail}
+                    alt={`View ${index + 1}`}
+                    className='h-full w-full aspect-auto object-center'
+                  />
+                </motion.div>
+              ))}
+            </div>
+          )}
 
-          <div className='absolute bottom-6 right-4'>
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              className={
-                'rounded-lg overflow-hidden cursor-pointer flex justify-center'
-              }
-            >
-              <button
-                className='bg-purple-500 text-white text-center py-2 px-4 shadow-lg transform transition-transform hover:scale-95 hover:shadow-xl rounded-lg flex items-center justify-center gap-x-2 text-xl font-medium border-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gradient-to-r disabled:from-gray-400 disabled:to-gray-200'
-                onClick={() => handleTryOn()}
-                disabled={isCameraOn}
+          {viewMode === 'model' && !isCameraOn && (
+            <div className='absolute bottom-6 right-4'>
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                className={
+                  'rounded-lg overflow-hidden cursor-pointer flex justify-center'
+                }
               >
-                Try On{' '}
-                <img
-                  src='/logo.png'
-                  alt='logo'
-                  className='h-6 w-8 p-1 inline-block'
-                />
-              </button>
-            </motion.div>
-          </div>
+                <button
+                  className='bg-purple-500 text-white text-center py-2 px-4 shadow-lg transform transition-transform hover:scale-95 hover:shadow-xl rounded-lg flex items-center justify-center gap-x-2 text-xl font-medium border-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gradient-to-r disabled:from-gray-400 disabled:to-gray-200'
+                  onClick={() => handleTryOn()}
+                >
+                  Try On{' '}
+                  <img
+                    src='/logo.png'
+                    alt='logo'
+                    className='h-6 w-8 p-1 inline-block'
+                  />
+                </button>
+              </motion.div>
+            </div>
+          )}
         </div>
       </div>
 
